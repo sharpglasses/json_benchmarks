@@ -16,6 +16,7 @@ struct measurements
 {
     size_t memory_used;
     size_t time_to_read;
+    size_t time_to_write;
     size_t memory_leaks;
 };
 

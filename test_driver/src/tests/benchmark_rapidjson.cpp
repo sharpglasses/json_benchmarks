@@ -1,10 +1,12 @@
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/filereadstream.h"
+#include "rapidjson/filewritestream.h"
 #include <cstdio>
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <cassert>
 #include "../measurements.hpp"
 #include "../memory_measurer.hpp"
 
@@ -15,57 +17,64 @@ using std::chrono::duration;
 using namespace json_benchmarks;
 using namespace rapidjson;
 
-measurements benchmark_rapidjson(const char *input_filename)
+measurements benchmark_rapidjson(const char *input_filename,
+                                 const char* output_filename)
 {
-    size_t start_memory;
-    size_t end_memory;
-    double sec;
+    size_t start_memory = 0;
+    size_t end_memory = 0;
+    size_t time_to_read = 0;
+    size_t time_to_write = 0;
 
+    start_memory =  memory_measurer::memory_available();
     {
-        start_memory =  memory_measurer::memory_available();
-        auto start = high_resolution_clock::now();
-
         Document d;
         try
         {
+            auto start = high_resolution_clock::now();
             FILE* fp = fopen(input_filename, "rb"); // non-Windows use "r"
             char readBuffer[65536];
             FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 
             d.ParseStream(is);
             auto end = high_resolution_clock::now();
-            sec = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+            time_to_read = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
             fclose(fp);
         }
-        catch (...)
+        catch (const std::exception& e)
         {
-            std::cout << "Exception" << std::endl;
+            std::cout << e.what() << std::endl;
             exit(1);
         }
         end_memory =  memory_measurer::memory_available();
+        {
+            try
+            {
+                FILE* fp = fopen(output_filename, "wb"); // non-Windows use "w"
+                assert(fp != nullptr);
+
+                char writeBuffer[65536];
+                FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
+
+                Writer<FileWriteStream> writer(os);
+                auto start = high_resolution_clock::now();
+                d.Accept(writer);
+                auto end = high_resolution_clock::now();
+                time_to_write = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+                fclose(fp);        
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << e.what() << std::endl;
+            }
+        }
     }
     size_t final_memory = memory_measurer::memory_available();
 	
 	measurements results;
     results.memory_used = (start_memory - end_memory)/1000000;
     results.memory_leaks = start_memory > final_memory ? (start_memory - final_memory)/1000000 : 0;
-    results.time_to_read = sec;
+    results.time_to_read = time_to_read;
+    results.time_to_write = time_to_write;
     return results;
-    //std::ifstream is(input_filename, std::ios::in | std::ofstream::binary);
-    //jsoncons::json_deserializer handler;
-    //jsoncons::json_reader reader(is, handler);
-    //try
-    //{
-    //    reader.read();
-    //}
-    //catch (...)
-    //{
-    //    std::cout << "Exception" << std::endl;
-    //    exit(1);
-    //}
-    //jsoncons::json root;
-    //root.swap(handler.root());
-
-    //std::cout << root << std::endl;
 }
 
