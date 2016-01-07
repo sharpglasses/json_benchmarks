@@ -113,10 +113,17 @@ inline bool is_neg_inf(double x)
 template<typename Char>
 std::basic_string<Char> float_to_string(double val, int precision)
 {
-	std::basic_stringstream<Char> ss;
-	print_float(val, precision, ss);
+	std::basic_ostringstream<Char> ss;
+    ss.imbue(std::locale::classic());
+    {
+        buffered_ostream<Char> os(ss);
+        print_float(val, precision, os);
+    }
 	return ss.str();
 }
+
+template <typename Char>
+class buffered_ostream;
 
 template <typename Char>
 class float_printer
@@ -128,7 +135,7 @@ public:
     {
     }
 
-    void print(double val, std::basic_ostream<Char>& os)
+    void print(double val, buffered_ostream<Char>& os)
     {
     	print_float(val, precision_, os);
     }
@@ -137,7 +144,7 @@ public:
 #ifdef _MSC_VER
 
 template<typename Char>
-void print_float(double val, int precision, std::basic_ostream<Char>& os)
+void print_float(double val, int precision, buffered_ostream<Char>& os)
 {
     char buf[_CVTBUFSIZE];
     int decimal_point = 0;
@@ -157,23 +164,19 @@ void print_float(double val, int precision, std::basic_ostream<Char>& os)
     char* s0 = s;
 	char* se = s + precision;
 
-	Char buf2[100];
-	Char* b = buf2;
-	Char* b0 = b;
-
     int i, k;
     int j;
 
     if (sign)
     {
-        *b++ = '-';
+        os.put('-');
     }
     if (decimal_point <= -4 || decimal_point > se - s + 5) 
     {
-        *b++ = *s++;
+        os.put(*s++);
         if (s < se) 
         {
-            *b++ = '.';
+            os.put('.');
             while ((se-1) > s && *(se-1) == '0')
             {
                 --se;
@@ -181,22 +184,22 @@ void print_float(double val, int precision, std::basic_ostream<Char>& os)
 			
             while(s < se)
             {
-                *b++ = *s++;
+                os.put(*s++);
             }
         }
-        *b++ = 'e';
+        os.put('e');
         /* sprintf(b, "%+.2d", decimal_point - 1); */
         if (--decimal_point < 0) {
-            *b++ = '-';
+            os.put('-');
             decimal_point = -decimal_point;
             }
         else
-            *b++ = '+';
+            os.put('+');
         for(j = 2, k = 10; 10*k <= decimal_point; j++, k *= 10);
         for(;;) 
 		{
             i = decimal_point / k;
-            *b++ = i + '0';
+            os.put(i + '0');
             if (--j <= 0)
                 break;
             decimal_point -= i*k;
@@ -205,28 +208,28 @@ void print_float(double val, int precision, std::basic_ostream<Char>& os)
     }
     else if (decimal_point <= 0) 
     {
-		*b++ = '0';
-        *b++ = '.';
+        os.put('0');
+        os.put('.');
         while ((se-1) > s && *(se-1) == '0')
         {
             --se;
         }
         for(; decimal_point < 0; decimal_point++)
         {
-            *b++ = '0';
+            os.put('0');
         }
 		while(s < se)
         {
-			*b++ = *s++;
+            os.put(*s++);
         }
 	}
     else {
         while(s < se) 
         {
-            *b++ = *s++;
+            os.put(*s++);
 			if ((--decimal_point == 0) && s < se)
 			{
-				*b++ = '.';
+                os.put('.');
 				while ((se-1) > s && *(se-1) == '0')
 				{
 					--se;
@@ -235,15 +238,14 @@ void print_float(double val, int precision, std::basic_ostream<Char>& os)
         }
         for(; decimal_point > 0; decimal_point--)
         {
-            *b++ = '0';
+            os.put('0');
         }
 	}
-     os.write(b0,b-b0);
 }
 
 #else
 template <typename Char>
-void print_float(double val, int precision, std::basic_ostream<Char>& os)
+void print_float(double val, int precision, buffered_ostream<Char>& os)
 {
     std::basic_ostringstream<Char> ss;
     ss.imbue(std::locale::classic());
@@ -273,10 +275,70 @@ void print_float(double val, int precision, std::basic_ostream<Char>& os)
 }
 #endif
 
-template<typename CharType>
-long long string_to_integer(bool has_neg, const CharType *s, size_t length) throw(std::overflow_error)
+template<typename CharT> 
+void print_integer(int64_t value, buffered_ostream<CharT>& os)
 {
-    const long long max_value = std::numeric_limits<long long>::max JSONCONS_NO_MACRO_EXP();
+    CharT buf[255];
+    uint64_t u = (value < 0) ? static_cast<uint64_t>(-value) : static_cast<uint64_t>(value);
+    CharT* p = buf;
+    do
+    {
+        *p++ = static_cast<CharT>(48 + u%10);
+    }
+    while (u /= 10);
+    if (value < 0)
+    {
+        os.put('-');
+    }
+    while (--p >= buf)
+    {
+        os.put(*p);
+    }
+}
+
+template<typename CharT>
+void print_unsigned_integer(uint64_t value, buffered_ostream<CharT>& os)
+{
+	CharT buf[255];
+	CharT* p = buf;
+	do
+	{
+		*p++ = static_cast<CharT>(48 + value % 10);
+	} while (value /= 10);
+	while (--p >= buf)
+	{
+		os.put(*p);
+	}
+}
+
+template<typename CharT>
+uint64_t string_to_unsigned_integer(const CharT *s, size_t length) throw(std::overflow_error)
+{
+    static const uint64_t max_value = std::numeric_limits<uint64_t>::max JSONCONS_NO_MACRO_EXP();
+    static const uint64_t max_value_div_10 = max_value / 10;
+    uint64_t n = 0;
+    for (size_t i = 0; i < length; ++i)
+    {
+        uint64_t x = s[i] - '0';
+        if (n > max_value_div_10)
+        {
+            throw std::overflow_error("Unsigned overflow");
+        }
+        n = n * 10;
+        if (n > max_value - x)
+        {
+            throw std::overflow_error("Unsigned overflow");
+        }
+
+        n += x;
+    }
+    return n;
+}
+
+template<typename CharT>
+int64_t string_to_integer(bool has_neg, const CharT *s, size_t length) throw(std::overflow_error)
+{
+    const long long max_value = std::numeric_limits<int64_t>::max JSONCONS_NO_MACRO_EXP();
     const long long max_value_div_10 = max_value / 10;
 
     long long n = 0;
