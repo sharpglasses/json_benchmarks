@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "measurements.hpp"
 
 using namespace json_benchmarks;
@@ -18,45 +19,73 @@ int main()
         const char *filename = "data/input/persons.json";
         make_big_file(filename, 1200000);
 
+        size_t file_size;
+        {
+                std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+                file_size = in.tellg(); 
+        }
+
+        std::ofstream os("report/performance.md");
+		os << "# Performance Benchmark Report" << std::endl;
+        os << std::endl;
+        os << "Input filename|Size (MB)|Content" << std::endl;
+        os << "---|---|---" << std::endl;
+        os << filename << "|" << (file_size/1000000.0) << "|" << "Text,integers" << std::endl;
+        os << std::endl;
+        os << "Environment"
+           << "|" << "Windows, Intel" << std::endl;
+        os << "---|---" << std::endl;
+        os << "Computer"
+           << "|" << "Dell Mobile Precision 2015, Intel Xeon E3-1535M v5, 32GB memory, 1TB SSD" << std::endl;
+        os << "Operating system"
+           << "|" << "Windows 2010" << std::endl;
+        os << "Compiler"
+           << "|" << "Visual Studio 2015" << std::endl;
+
+        os << std::endl;
+
+        os << "Library|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)" << std::endl;
+        os << "---|---|---|---" << std::endl;
+
         measurements results = benchmark_jsoncons("data/input/persons.json",
                                                   "data/output/persons-jsoncons.json");
+        os << "[jsoncons](https://github.com/danielaparker/jsoncons)"
+           << "|" << (results.time_to_read/1000.0) 
+           << "|" << (results.time_to_write/1000.0) 
+           << "|" << (results.memory_used)
+           << std::endl; 
 
-        std::cout << "jsoncons: time to read=" << (results.time_to_read/1000.0) << " seconds"
-                  << ", time to write=" << (results.time_to_write/1000.0) << " seconds"
-                  << ", memory footprint of json value=" << results.memory_used << " megabytes" 
-            << std::endl;
-
-        measurements results2 = benchmark_rapidjson("data/input/persons.json",
+        results = benchmark_rapidjson("data/input/persons.json",
                                                     "data/output/persons-rapidjson.json");
+        os << "[rapidjson](https://github.com/miloyip/rapidjson)"
+           << "|" << (results.time_to_read/1000.0) 
+           << "|" << (results.time_to_write/1000.0) 
+           << "|" << (results.memory_used)
+           << std::endl; 
 
-        std::cout << "rapidjson: time to read=" << (results2.time_to_read/1000.0) << " seconds"
-                  << ", time to write=" << (results2.time_to_write/1000.0) << " seconds"
-                  << ", memory footprint of json value=" << results2.memory_used << " megabytes" 
-            << std::endl;
-
-        measurements results3 = benchmark_nlohmann("data/input/persons.json",
+        results = benchmark_nlohmann("data/input/persons.json",
                                                    "data/output/persons-nlohmann.json");
+        os << "[nlohmann](https://github.com/nlohmann/json)"
+           << "|" << (results.time_to_read/1000.0) 
+           << "|" << (results.time_to_write/1000.0) 
+           << "|" << (results.memory_used)
+           << std::endl; 
 
-        std::cout << "nlohmann: time to read=" << (results3.time_to_read/1000.0) << " seconds"
-                  << ", time to write=" << (results3.time_to_write/1000.0) << " seconds"
-                  << ", memory footprint of json value=" << results3.memory_used << " megabytes" 
-            << std::endl;
+		results = benchmark_jsoncpp("data/input/persons.json",
+			"data/output/persons-jsoncpp.json");
+        os << "[jsoncpp](https://github.com/open-source-parsers/jsoncpp)"
+           << "|" << (results.time_to_read/1000.0) 
+           << "|" << (results.time_to_write/1000.0) 
+           << "|" << (results.memory_used)
+           << std::endl; 
 
-		measurements results5 = benchmark_jsoncpp("data/input/persons.json",
-			"data/output/persons-json_spirit.json");
-
-		std::cout << "jsoncpp: time to read=" << (results5.time_to_read / 1000.0) << " seconds"
-			<< ", time to write=" << (results5.time_to_write / 1000.0) << " seconds"
-			<< ", memory footprint of json value=" << results5.memory_used << " megabytes"
-			<< std::endl;
-
-        measurements results4 = benchmark_json_spirit("data/input/persons.json",
-                                                      "data/output/persons-jsoncpp.json");
-
-        std::cout << "json_spirit: time to read=" << (results4.time_to_read/1000.0) << " seconds"
-                  << ", time to write=" << (results4.time_to_write/1000.0) << " seconds"
-                  << ", memory footprint of json value=" << results4.memory_used << " megabytes" 
-            << std::endl;
+        results = benchmark_json_spirit("data/input/persons.json",
+                                                      "data/output/persons-json_spirit.json");
+        os << "[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)"
+           << "|" << (results.time_to_read/1000.0) 
+           << "|" << (results.time_to_write/1000.0) 
+           << "|" << (results.memory_used)
+           << std::endl; 
     }
     catch (const std::exception& e)
     {
