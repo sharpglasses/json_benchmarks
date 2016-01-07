@@ -51,7 +51,7 @@ int main()
 			<< std::endl;
 
         measurements results4 = benchmark_json_spirit("data/input/persons.json",
-                                                      "data/output/persons-json_spirit.json");
+                                                      "data/output/persons-jsoncpp.json");
 
         std::cout << "json_spirit: time to read=" << (results4.time_to_read/1000.0) << " seconds"
                   << ", time to write=" << (results4.time_to_write/1000.0) << " seconds"
