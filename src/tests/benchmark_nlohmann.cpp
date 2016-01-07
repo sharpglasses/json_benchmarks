@@ -52,7 +52,6 @@ measurements benchmark_nlohmann(const char *input_filename,
 	
 	measurements results;
     results.memory_used = (end_memory_used - start_memory_used)/1000000;
-    results.memory_leaks = final_memory_used > start_memory_used ? (final_memory_used - start_memory_used) : 0;
     results.time_to_read = time_to_read;
     results.time_to_write = time_to_write;
     return results;
