@@ -64,6 +64,7 @@ measurements benchmark_json_spirit(const char *input_filename,
     results.memory_used = (end_memory_used - start_memory_used)/1000000;
     results.time_to_read = time_to_read;
     results.time_to_write = time_to_write;
+    results.remarks = "Boost spirit parsing is slow";
     return results;
 }
 

@@ -28,24 +28,6 @@
 namespace jsoncons {
 
 template<typename Char, typename Alloc>
-class json_type_traits<Char, Alloc, typename basic_json<Char, Alloc>::object_key_proxy>
-{
-public:
-    static bool is(const basic_json<Char, Alloc>& rhs)
-    {
-        return true;
-    }
-    static basic_json<Char, Alloc> as(const basic_json<Char, Alloc>& rhs)
-    {
-        return rhs;
-    }
-    static void assign(basic_json<Char, Alloc>& lhs, basic_json<Char, Alloc> rhs)
-    {
-        lhs.swap(rhs);
-    }
-};
-
-template<typename Char, typename Alloc>
 class json_type_traits<Char, Alloc, std::basic_string<Char>>
 {
 public:
@@ -82,7 +64,7 @@ public:
 };
 
 template<typename Char, typename Alloc>
-class json_type_traits<Char, Alloc, const Char *>
+class json_type_traits<Char, Alloc, typename type_wrapper<Char>::const_pointer_type>
 {
 public:
     static bool is(const basic_json<Char, Alloc>& rhs)
@@ -91,7 +73,7 @@ public:
     }
     static const Char* as(const basic_json<Char, Alloc>& rhs)
     {
-        return rhs.value.as_cstring();
+        return rhs.as_cstring();
     }
     static void assign(basic_json<Char, Alloc>& lhs, const Char *rhs)
     {
@@ -227,7 +209,7 @@ public:
     static typename basic_json<Char, Alloc>::object as(basic_json<Char, Alloc> rhs)
     {
 		JSONCONS_ASSERT(rhs.is_object());
-		return rhs.members();
+		return rhs.object_value();
     }
     static void assign(basic_json<Char, Alloc>& lhs, typename basic_json<Char, Alloc>::object rhs)
     {
@@ -246,7 +228,7 @@ public:
     static typename basic_json<Char, Alloc>::array as(const basic_json<Char, Alloc>& rhs)
     {
 		JSONCONS_ASSERT(rhs.is_array());
-        return rhs.elements();
+        return rhs.array_value();
     }
     static void assign(basic_json<Char, Alloc>& lhs, typename basic_json<Char, Alloc>::array rhs)
     {

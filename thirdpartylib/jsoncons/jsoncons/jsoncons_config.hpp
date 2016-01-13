@@ -275,91 +275,6 @@ void print_float(double val, int precision, buffered_ostream<Char>& os)
 }
 #endif
 
-template<typename CharT> 
-void print_integer(int64_t value, buffered_ostream<CharT>& os)
-{
-    CharT buf[255];
-    uint64_t u = (value < 0) ? static_cast<uint64_t>(-value) : static_cast<uint64_t>(value);
-    CharT* p = buf;
-    do
-    {
-        *p++ = static_cast<CharT>(48 + u%10);
-    }
-    while (u /= 10);
-    if (value < 0)
-    {
-        os.put('-');
-    }
-    while (--p >= buf)
-    {
-        os.put(*p);
-    }
-}
-
-template<typename CharT>
-void print_unsigned_integer(uint64_t value, buffered_ostream<CharT>& os)
-{
-	CharT buf[255];
-	CharT* p = buf;
-	do
-	{
-		*p++ = static_cast<CharT>(48 + value % 10);
-	} while (value /= 10);
-	while (--p >= buf)
-	{
-		os.put(*p);
-	}
-}
-
-template<typename CharT>
-uint64_t string_to_unsigned_integer(const CharT *s, size_t length) throw(std::overflow_error)
-{
-    static const uint64_t max_value = std::numeric_limits<uint64_t>::max JSONCONS_NO_MACRO_EXP();
-    static const uint64_t max_value_div_10 = max_value / 10;
-    uint64_t n = 0;
-    for (size_t i = 0; i < length; ++i)
-    {
-        uint64_t x = s[i] - '0';
-        if (n > max_value_div_10)
-        {
-            throw std::overflow_error("Unsigned overflow");
-        }
-        n = n * 10;
-        if (n > max_value - x)
-        {
-            throw std::overflow_error("Unsigned overflow");
-        }
-
-        n += x;
-    }
-    return n;
-}
-
-template<typename CharT>
-int64_t string_to_integer(bool has_neg, const CharT *s, size_t length) throw(std::overflow_error)
-{
-    const long long max_value = std::numeric_limits<int64_t>::max JSONCONS_NO_MACRO_EXP();
-    const long long max_value_div_10 = max_value / 10;
-
-    long long n = 0;
-    for (size_t i = 0; i < length; ++i)
-    {
-        long long x = s[i] - '0';
-        if (n > max_value_div_10)
-        {
-            throw std::overflow_error("Integer overflow");
-        }
-        n = n * 10;
-        if (n > max_value - x)
-        {
-            throw std::overflow_error("Integer overflow");
-        }
-
-        n += x;
-    }
-    return has_neg ? -n : n;
-}
-
 // string_to_float only requires narrow char
 #ifdef _MSC_VER
 class float_reader
@@ -440,7 +355,7 @@ public:
                     ++j;
                 }
             }
-            const char *begin = &buffer_[0];
+            const char *begin = buffer_.data();
             char *end = nullptr;
             val = strtod(begin, &end);
             if (begin == end)

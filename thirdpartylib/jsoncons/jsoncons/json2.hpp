@@ -152,28 +152,10 @@ typename basic_json<Char, Alloc>::const_val_proxy basic_json<Char, Alloc>::get(c
 }
 
 template<typename Char, typename Alloc>
-void basic_json<Char, Alloc>::set(const std::basic_string<Char>& name, const basic_json<Char, Alloc>& value)
-{
-    switch (var_.type_)
-    {
-    case value_types::empty_object_t:
-        var_.type_ = value_types::object_t;
-        var_.value_.object_ = new json_object<Char, Alloc>();
-    case value_types::object_t:
-        var_.value_.object_->set(name, value);
-        break;
-    default:
-        {
-            JSONCONS_THROW_EXCEPTION_1("Attempting to set %s on a value that is not an object", name);
-        }
-    }
-}
-
-template<typename Char, typename Alloc>
 void basic_json<Char, Alloc>::add(basic_json<Char, Alloc>&& value){
     switch (var_.type_){
     case value_types::array_t:
-        var_.value_.array_->push_back(value);
+        var_.value_.array_->push_back(std::move(value));
         break;
     default:
         {
@@ -186,27 +168,11 @@ template<typename Char, typename Alloc>
 void basic_json<Char, Alloc>::add(size_t index, basic_json<Char, Alloc>&& value){
     switch (var_.type_){
     case value_types::array_t:
-        var_.value_.array_->add(index, value);
+        var_.value_.array_->add(index, std::move(value));
         break;
     default:
         {
             JSONCONS_THROW_EXCEPTION("Attempting to insert into a value that is not an array");
-        }
-    }
-}
-
-template<typename Char, typename Alloc>
-void basic_json<Char, Alloc>::set(std::basic_string<Char>&& name, basic_json<Char, Alloc>&& value){
-    switch (var_.type_){
-    case value_types::empty_object_t:
-        var_.type_ = value_types::object_t;
-        var_.value_.object_ = new json_object<Char,Alloc>();
-    case value_types::object_t:
-        var_.value_.object_->set(name,value);
-        break;
-    default:
-        {
-            JSONCONS_THROW_EXCEPTION_1("Attempting to set %s on a value that is not an object",name);
         }
     }
 }
@@ -362,8 +328,8 @@ void basic_json<Char, Alloc>::to_stream(basic_json_output_handler<Char>& handler
     case value_types::integer_t:
         handler.value(var_.value_.integer_value_);
         break;
-    case value_types::unsigned_integer_t:
-        handler.value(var_.value_.unsigned_integer_value_);
+    case value_types::uinteger_t:
+        handler.value(var_.value_.uinteger_value_);
         break;
     case value_types::bool_t:
         handler.value(var_.value_.bool_value_);
@@ -519,6 +485,39 @@ basic_json<Char, Alloc> basic_json<Char, Alloc>::parse(std::basic_istream<Char>&
 }
 
 template<typename Char, typename Alloc>
+basic_json<Char, Alloc> basic_json<Char, Alloc>::parse(const std::basic_string<Char>& s)
+{
+    basic_json_deserializer<Char, Alloc> handler;
+    basic_json_parser<Char> parser(handler);
+    parser.begin_parse();
+    parser.parse(s.c_str(),0,s.length());
+    parser.end_parse();
+    parser.check_done(s.c_str(),parser.index(),s.length());
+    if (!handler.is_valid())
+    {
+        JSONCONS_THROW_EXCEPTION("Failed to parse json string");
+    }
+    return handler.get_result();
+}
+
+template<typename Char, typename Alloc>
+basic_json<Char, Alloc> basic_json<Char, Alloc>::parse(const std::basic_string<Char>& s, 
+                                                       basic_parse_error_handler<Char>& err_handler)
+{
+    basic_json_deserializer<Char, Alloc> handler;
+    basic_json_parser<Char> parser(handler,err_handler);
+    parser.begin_parse();
+    parser.parse(s.c_str(),0,s.length());
+    parser.end_parse();
+    parser.check_done(s.c_str(),parser.index(),s.length());
+    if (!handler.is_valid())
+    {
+        JSONCONS_THROW_EXCEPTION("Failed to parse json string");
+    }
+    return handler.get_result();
+}
+
+template<typename Char, typename Alloc>
 basic_json<Char, Alloc> basic_json<Char, Alloc>::parse_string(const std::basic_string<Char>& s)
 {
     basic_json_deserializer<Char, Alloc> handler;
@@ -572,7 +571,7 @@ basic_json<Char, Alloc> basic_json<Char, Alloc>::parse_file(const std::string& f
             std::vector<Char> buffer(size);
 
             // copy the file into the buffer:
-            size_t result = std::fread (&buffer[0],1,size,fp);
+            size_t result = std::fread (buffer.data(),1,size,fp);
             if (result != static_cast<unsigned long long>(size))
             {
                 throw json_exception_1<char>("Error reading file %s", filename);
@@ -580,9 +579,9 @@ basic_json<Char, Alloc> basic_json<Char, Alloc>::parse_file(const std::string& f
 
             basic_json_parser<Char> parser(handler);
             parser.begin_parse();
-            parser.parse(&buffer[0],0,buffer.size());
+            parser.parse(buffer.data(),0,buffer.size());
             parser.end_parse();
-            parser.check_done(&buffer[0],parser.index(),buffer.size());
+            parser.check_done(buffer.data(),parser.index(),buffer.size());
         }
 
         std::fclose (fp);
@@ -621,7 +620,7 @@ basic_json<Char, Alloc> basic_json<Char, Alloc>::parse_file(const std::string& f
             std::vector<Char> buffer(size);
 
             // copy the file into the buffer:
-            size_t result = std::fread (&buffer[0],1,size,fp);
+            size_t result = std::fread (buffer.data(),1,size,fp);
             if (result != static_cast<unsigned long long>(size))
             {
                 throw json_exception_1<char>("Error reading file %s", filename);
@@ -629,9 +628,9 @@ basic_json<Char, Alloc> basic_json<Char, Alloc>::parse_file(const std::string& f
 
             basic_json_parser<Char> parser(handler,err_handler);
             parser.begin_parse();
-            parser.parse(&buffer[0],0,buffer.size());
+            parser.parse(buffer.data(),0,buffer.size());
             parser.end_parse();
-            parser.check_done(&buffer[0],parser.index(),buffer.size());
+            parser.check_done(buffer.data(),parser.index(),buffer.size());
         }
 
         std::fclose (fp);
@@ -649,7 +648,7 @@ basic_json<Char, Alloc> basic_json<Char, Alloc>::parse_file(const std::string& f
 }
 
 template<typename Char, typename Alloc>
-typename basic_json<Char, Alloc>::member_iterator basic_json<Char, Alloc>::begin_members()
+typename basic_json<Char, Alloc>::object_iterator basic_json<Char, Alloc>::begin_members()
 {
     switch (var_.type_)
     {
@@ -678,7 +677,7 @@ typename basic_json<Char, Alloc>::const_object_iterator basic_json<Char, Alloc>:
 }
 
 template<typename Char, typename Alloc>
-typename basic_json<Char, Alloc>::member_iterator basic_json<Char, Alloc>::end_members()
+typename basic_json<Char, Alloc>::object_iterator basic_json<Char, Alloc>::end_members()
 {
     switch (var_.type_)
     {
@@ -755,9 +754,9 @@ typename basic_json<Char, Alloc>::const_array_iterator basic_json<Char, Alloc>::
 }
 
 template<typename Char, typename Alloc>
-bool basic_json<Char, Alloc>::is_empty() const
+bool basic_json<Char, Alloc>::empty() const
 {
-    return var_.is_empty();
+    return var_.empty();
 }
 
 template<typename Char, typename Alloc>
@@ -839,8 +838,8 @@ long long basic_json<Char, Alloc>::as_longlong() const
         return static_cast<long long>(var_.value_.float_value_);
     case value_types::integer_t:
         return static_cast<long long>(var_.value_.integer_value_);
-    case value_types::unsigned_integer_t:
-        return static_cast<long long>(var_.value_.unsigned_integer_value_);
+    case value_types::uinteger_t:
+        return static_cast<long long>(var_.value_.uinteger_value_);
     case value_types::bool_t:
         return var_.value_.bool_value_ ? 1 : 0;
     default:
@@ -857,8 +856,8 @@ unsigned long long basic_json<Char, Alloc>::as_ulonglong() const
         return static_cast<unsigned long long>(var_.value_.float_value_);
     case value_types::integer_t:
         return static_cast<unsigned long long>(var_.value_.integer_value_);
-    case value_types::unsigned_integer_t:
-        return static_cast<unsigned long long>(var_.value_.unsigned_integer_value_);
+    case value_types::uinteger_t:
+        return static_cast<unsigned long long>(var_.value_.uinteger_value_);
     case value_types::bool_t:
         return var_.value_.bool_value_ ? 1 : 0;
     default:
@@ -875,8 +874,8 @@ double basic_json<Char, Alloc>::as_double() const
         return var_.value_.float_value_;
     case value_types::integer_t:
         return static_cast<double>(var_.value_.integer_value_);
-    case value_types::unsigned_integer_t:
-        return static_cast<double>(var_.value_.unsigned_integer_value_);
+    case value_types::uinteger_t:
+        return static_cast<double>(var_.value_.uinteger_value_);
     case value_types::null_t:
         return std::numeric_limits<double>::quiet_NaN();
     default:
@@ -893,8 +892,8 @@ int basic_json<Char, Alloc>::as_int() const
         return static_cast<int>(var_.value_.float_value_);
     case value_types::integer_t:
         return static_cast<int>(var_.value_.integer_value_);
-    case value_types::unsigned_integer_t:
-        return static_cast<int>(var_.value_.unsigned_integer_value_);
+    case value_types::uinteger_t:
+        return static_cast<int>(var_.value_.uinteger_value_);
     case value_types::bool_t:
         return var_.value_.bool_value_ ? 1 : 0;
     default:
@@ -911,8 +910,8 @@ unsigned int basic_json<Char, Alloc>::as_uint() const
         return static_cast<unsigned int>(var_.value_.float_value_);
     case value_types::integer_t:
         return static_cast<unsigned int>(var_.value_.integer_value_);
-    case value_types::unsigned_integer_t:
-        return static_cast<unsigned int>(var_.value_.unsigned_integer_value_);
+    case value_types::uinteger_t:
+        return static_cast<unsigned int>(var_.value_.uinteger_value_);
     case value_types::bool_t:
         return var_.value_.bool_value_ ? 1 : 0;
     default:
@@ -929,8 +928,8 @@ long basic_json<Char, Alloc>::as_long() const
         return static_cast<long>(var_.value_.float_value_);
     case value_types::integer_t:
         return static_cast<long>(var_.value_.integer_value_);
-    case value_types::unsigned_integer_t:
-        return static_cast<long>(var_.value_.unsigned_integer_value_);
+    case value_types::uinteger_t:
+        return static_cast<long>(var_.value_.uinteger_value_);
     case value_types::bool_t:
         return var_.value_.bool_value_ ? 1 : 0;
     default:
@@ -947,8 +946,8 @@ unsigned long basic_json<Char, Alloc>::as_ulong() const
         return static_cast<unsigned long>(var_.value_.float_value_);
     case value_types::integer_t:
         return static_cast<unsigned long>(var_.value_.integer_value_);
-    case value_types::unsigned_integer_t:
-        return static_cast<unsigned long>(var_.value_.unsigned_integer_value_);
+    case value_types::uinteger_t:
+        return static_cast<unsigned long>(var_.value_.uinteger_value_);
     case value_types::bool_t:
         return var_.value_.bool_value_ ? 1 : 0;
     default:
@@ -1026,11 +1025,26 @@ std::basic_string<Char> basic_json<Char, Alloc>::as_string(const basic_output_fo
     }
 }
 
-template<typename Char, typename Alloc>
+template <typename Char,typename Alloc>
 std::basic_ostream<Char>& operator<<(std::basic_ostream<Char>& os, const basic_json<Char, Alloc>& o)
 {
     o.to_stream(os);
     return os;
+}
+
+template <typename Char, typename Alloc>
+std::basic_istream<Char>& operator>>(std::basic_istream<Char>& is, basic_json<Char, Alloc>& o)
+{
+    basic_json_deserializer<Char, Alloc> handler;
+    basic_json_reader<Char> reader(is, handler);
+    reader.read_next();
+    reader.check_done();
+    if (!handler.is_valid())
+    {
+        JSONCONS_THROW_EXCEPTION("Failed to parse json stream");
+    }
+    o = handler.get_result();
+    return is;
 }
 
 template<typename Char, typename Alloc>

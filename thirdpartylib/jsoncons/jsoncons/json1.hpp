@@ -69,7 +69,7 @@ namespace value_types
         string_t,
         double_t,
         integer_t,
-        unsigned_integer_t,
+        uinteger_t,
         bool_t,
         null_t,
         any_t
@@ -110,7 +110,7 @@ public:
 			impl_ = val.impl_ != nullptr ? val.impl_->clone() : nullptr;
         }
         any(any&& val)
-            : impl_(val.impl_)
+            : impl_(std::move(val.impl_))
         {
             val.impl_ = nullptr;
         }
@@ -251,11 +251,9 @@ public:
         }
 		
         explicit variant(variant&& rhs)
+            : type_(value_types::null_t)
         {
-            type_ = rhs.type_;
-            small_string_length_ = rhs.small_string_length_;
-            value_ = rhs.value_;
-            rhs.type_ = value_types::null_t;
+            swap(rhs);
         }
 
         explicit variant(const variant& var)
@@ -272,8 +270,8 @@ public:
             case value_types::integer_t:
                 value_.integer_value_ = var.value_.integer_value_;
                 break;
-            case value_types::unsigned_integer_t:
-                value_.unsigned_integer_value_ = var.value_.unsigned_integer_value_;
+            case value_types::uinteger_t:
+                value_.uinteger_value_ = var.value_.uinteger_value_;
                 break;
             case value_types::bool_t:
                 value_.bool_value_ = var.value_.bool_value_;
@@ -310,7 +308,7 @@ public:
         variant(json_object<Char,Alloc>&& val)
             : type_(value_types::object_t)
         {
-            value_.object_ = new json_object<Char,Alloc>(val);
+            value_.object_ = new json_object<Char,Alloc>(std::move(val));
         }
 
         variant(const json_array<Char,Alloc>& val)
@@ -322,7 +320,7 @@ public:
         variant(json_array<Char,Alloc>&& val)
             : type_(value_types::array_t)
         {
-            value_.array_ = new json_array<Char,Alloc>(val);
+            value_.array_ = new json_array<Char,Alloc>(std::move(val));
         }
 
         variant(value_types::value_types_t type, size_t size)
@@ -337,7 +335,7 @@ public:
                 break;
             case value_types::integer_t:
                 break;
-            case value_types::unsigned_integer_t:
+            case value_types::uinteger_t:
                 break;
             case value_types::bool_t:
                 break;
@@ -392,9 +390,9 @@ public:
         }
 
         explicit variant(uint64_t val)
-            : type_(value_types::unsigned_integer_t)
+            : type_(value_types::uinteger_t)
         {
-            value_.unsigned_integer_value_ = val;
+            value_.uinteger_value_ = val;
         }
 
         explicit variant(const std::basic_string<Char>& s)
@@ -506,7 +504,7 @@ public:
                 case value_types::empty_object_t:
                 case value_types::small_string_t:
                 case value_types::integer_t:
-                case value_types::unsigned_integer_t:
+                case value_types::uinteger_t:
                 case value_types::double_t:
                     switch (val.type_)
                     {
@@ -515,7 +513,7 @@ public:
                     case value_types::empty_object_t:
                     case value_types::small_string_t:
                     case value_types::integer_t:
-                    case value_types::unsigned_integer_t:
+                    case value_types::uinteger_t:
                     case value_types::double_t:
                         type_ = val.type_;
                         small_string_length_ = val.small_string_length_;
@@ -562,7 +560,7 @@ public:
 			default:
 				destroy();
 				type_ = value_types::object_t;
-				value_.object_ = new json_object<Char, Alloc>(val);
+				value_.object_ = new json_object<Char, Alloc>(std::move(val));
 				break;
 			}
 		}
@@ -584,7 +582,7 @@ public:
 			default:
 				destroy();
 				type_ = value_types::array_t;
-				value_.array_ = new json_array<Char, Alloc>(val);
+				value_.array_ = new json_array<Char, Alloc>(std::move(val));
 				break;
 			}
 		}
@@ -598,7 +596,7 @@ public:
             case value_types::empty_object_t:
             case value_types::small_string_t:
             case value_types::integer_t:
-            case value_types::unsigned_integer_t:
+            case value_types::uinteger_t:
             case value_types::double_t:
                 if (s.length() > variant::small_string_capacity)
                 {
@@ -628,7 +626,7 @@ public:
             case value_types::empty_object_t:
             case value_types::small_string_t:
             case value_types::integer_t:
-            case value_types::unsigned_integer_t:
+            case value_types::uinteger_t:
             case value_types::double_t:
 				{
 					if (length > variant::small_string_capacity)
@@ -660,7 +658,7 @@ public:
             case value_types::empty_object_t:
             case value_types::small_string_t:
             case value_types::integer_t:
-            case value_types::unsigned_integer_t:
+            case value_types::uinteger_t:
             case value_types::double_t:
                 type_ = value_types::integer_t;
                 value_.integer_value_ = val;
@@ -680,10 +678,10 @@ public:
             case value_types::empty_object_t:
             case value_types::small_string_t:
             case value_types::integer_t:
-            case value_types::unsigned_integer_t:
+            case value_types::uinteger_t:
             case value_types::double_t:
-                type_ = value_types::unsigned_integer_t;
-                value_.unsigned_integer_value_ = val;
+                type_ = value_types::uinteger_t;
+                value_.uinteger_value_ = val;
                 break;
             default:
                 variant(val).swap(*this);
@@ -700,7 +698,7 @@ public:
             case value_types::empty_object_t:
             case value_types::small_string_t:
             case value_types::integer_t:
-            case value_types::unsigned_integer_t:
+            case value_types::uinteger_t:
             case value_types::double_t:
                 type_ = value_types::double_t;
                 value_.float_value_ = val;
@@ -720,7 +718,7 @@ public:
             case value_types::empty_object_t:
             case value_types::small_string_t:
             case value_types::integer_t:
-            case value_types::unsigned_integer_t:
+            case value_types::uinteger_t:
             case value_types::double_t:
                 type_ = value_types::bool_t;
                 value_.bool_value_ = val;
@@ -740,7 +738,7 @@ public:
             case value_types::empty_object_t:
             case value_types::small_string_t:
             case value_types::integer_t:
-            case value_types::unsigned_integer_t:
+            case value_types::uinteger_t:
             case value_types::double_t:
                 type_ = value_types::null_t;
                 break;
@@ -759,7 +757,7 @@ public:
             case value_types::empty_object_t:
             case value_types::small_string_t:
             case value_types::integer_t:
-            case value_types::unsigned_integer_t:
+            case value_types::uinteger_t:
             case value_types::double_t:
                 type_ = value_types::any_t;
                 value_.any_value_ = new any(rhs);
@@ -786,21 +784,21 @@ public:
                     {
                     case value_types::integer_t:
                         return value_.integer_value_ == rhs.value_.integer_value_;
-                    case value_types::unsigned_integer_t:
-                        return value_.integer_value_ == rhs.value_.unsigned_integer_value_;
+                    case value_types::uinteger_t:
+                        return value_.integer_value_ == rhs.value_.uinteger_value_;
                     case value_types::double_t:
                         return value_.integer_value_ == rhs.value_.float_value_;
                     }
                     break;
-                case value_types::unsigned_integer_t:
+                case value_types::uinteger_t:
                     switch (rhs.type_)
                     {
                     case value_types::integer_t:
-                        return value_.unsigned_integer_value_ == rhs.value_.integer_value_;
-                    case value_types::unsigned_integer_t:
-                        return value_.unsigned_integer_value_ == rhs.value_.unsigned_integer_value_;
+                        return value_.uinteger_value_ == rhs.value_.integer_value_;
+                    case value_types::uinteger_t:
+                        return value_.uinteger_value_ == rhs.value_.uinteger_value_;
                     case value_types::double_t:
-                        return value_.unsigned_integer_value_ == rhs.value_.float_value_;
+                        return value_.uinteger_value_ == rhs.value_.float_value_;
                     }
                     break;
                 case value_types::double_t:
@@ -808,8 +806,8 @@ public:
                     {
                     case value_types::integer_t:
                         return value_.float_value_ == rhs.value_.integer_value_;
-                    case value_types::unsigned_integer_t:
-                        return value_.float_value_ == rhs.value_.unsigned_integer_value_;
+                    case value_types::uinteger_t:
+                        return value_.float_value_ == rhs.value_.uinteger_value_;
                     case value_types::double_t:
                         return value_.float_value_ == rhs.value_.float_value_;
                     }
@@ -857,7 +855,13 @@ public:
             return type_ == value_types::bool_t;
         }
 
+        // Deprecated
         bool is_empty() const
+        {
+            return empty();
+        }
+
+        bool empty() const
         {
             switch (type_)
             {
@@ -883,7 +887,7 @@ public:
 
         bool is_numeric() const
         {
-            return type_ == value_types::double_t || type_ == value_types::integer_t || type_ == value_types::unsigned_integer_t;
+            return type_ == value_types::double_t || type_ == value_types::integer_t || type_ == value_types::uinteger_t;
         }
 
         void swap(variant& var)
@@ -901,7 +905,7 @@ public:
         {
             double float_value_;
             int64_t integer_value_;
-            uint64_t unsigned_integer_value_;
+            uint64_t uinteger_value_;
             bool bool_value_;
             json_object<Char,Alloc>* object_;
             json_array<Char,Alloc>* array_;
@@ -925,17 +929,28 @@ public:
         {
         }
         member_type(member_type&& pair)
-            //: name_(std::move(pair.name_)), value_(std::move(pair.value_))
+            : name_(std::move(pair.name_)), value_(std::move(pair.value_))
         {
-            name_.swap(pair.name_);
-            value_.swap(pair.value_);
+            //name_.swap(pair.name_);
+            //value_.swap(pair.value_);
         }
         member_type(const std::basic_string<Char>& name, const basic_json<Char,Alloc>& value)
             : name_(name), value_(value)
         {
         }
+
         member_type(std::basic_string<Char>&& name, basic_json<Char,Alloc>&& value)
-            : name_(name), value_(value)
+            : name_(std::move(name)), value_(std::move(value))
+        {
+        }
+
+        member_type(std::basic_string<Char>&& name, const basic_json<Char,Alloc>& value)
+            : name_(std::move(name)), value_(value)
+        {
+        }
+
+        member_type(const std::basic_string<Char>& name, basic_json<Char,Alloc>&& value)
+            : name_(name), value_(std::move(std::move(value)))
         {
         }
 
@@ -959,10 +974,28 @@ public:
             name_.swap(pair.name_);
             value_.swap(pair.value_);
         }
-    private:
-        // Not to be implemented
-        void operator=(member_type const &); 
 
+        member_type& operator=(member_type const & member)
+        {
+            if (this != & member)
+            {
+                name_ = member.name;
+                value_ = member.value;
+            }
+            return *this;
+        }
+
+        member_type& operator=(member_type&& member)
+        {
+            if (this != &member)
+            {
+                name_.swap(member.name_);
+                value_.swap(member.value_);
+            }
+            return *this;
+        }
+
+    private:
         std::basic_string<Char> name_;
         basic_json<Char,Alloc> value_;
     };
@@ -974,16 +1007,147 @@ public:
     static const basic_json<Char,Alloc> an_array;
     static const basic_json<Char,Alloc> null;
 
-    typedef typename json_object<Char,Alloc>::iterator member_iterator;
+    typedef typename json_object<Char,Alloc>::iterator object_iterator;
     typedef typename json_object<Char,Alloc>::const_iterator const_object_iterator;
-
     typedef typename json_array<Char,Alloc>::iterator array_iterator;
     typedef typename json_array<Char,Alloc>::const_iterator const_array_iterator;
 
+    class object_range
+    {
+        basic_json<Char,Alloc>& val_;
+
+        object_range();
+        object_range& operator = (const object_range& other); // noop
+
+        object_range(basic_json<Char,Alloc>& val)
+            : val_(val)
+        {
+        }
+    public:
+        friend class basic_json<Char, Alloc>;
+
+        object_iterator begin()
+        {
+            return val_.begin_members();
+        }
+        object_iterator end()
+        {
+            return val_.end_members();
+        }
+    };
+
+    class const_object_range
+    {
+        const basic_json<Char,Alloc>& val_;
+
+        const_object_range();
+        const_object_range& operator = (const const_object_range& other); // noop
+
+        const_object_range(const basic_json<Char,Alloc>& val)
+            : val_(val)
+        {
+        }
+    public:
+        friend class basic_json<Char, Alloc>;
+        const_object_iterator begin() const
+        {
+            return val_.begin_members();
+        }
+        const_object_iterator end() const
+        {
+            return val_.end_members();
+        }
+    };
+
+    class array_range
+    {
+        basic_json<Char,Alloc>& val_;
+
+        array_range();
+        array_range& operator = (const array_range& other); // noop
+
+        array_range(basic_json<Char,Alloc>& val)
+            : val_(val)
+        {
+        }
+    public:
+        friend class basic_json<Char, Alloc>;
+
+        array_iterator begin()
+        {
+            return val_.begin_elements();
+        }
+        array_iterator end()
+        {
+            return val_.end_elements();
+        }
+    };
+
+    class const_array_range
+    {
+        const basic_json<Char,Alloc>& val_;
+
+        const_array_range();
+        const_array_range& operator = (const const_array_range& other); // noop
+
+        const_array_range(basic_json<Char,Alloc>& val)
+            : val_(val)
+        {
+        }
+    public:
+        friend class basic_json<Char, Alloc>;
+
+        const_array_iterator begin() const
+        {
+            return val_.begin_elements();
+        }
+        const_array_iterator end() const
+        {
+            return val_.end_elements();
+        }
+    };
+
     class const_val_proxy 
     {
+    private:
+        const_val_proxy(); // no op
+        const_val_proxy& operator = (const const_val_proxy& other); // noop
+
+        const_val_proxy(const basic_json<Char,Alloc>& val)
+            : val_(val)
+        {
+        }
+
+        template <typename T>
+        const_val_proxy(T val)
+            : val2_(val), val_(val2_)
+        {
+        }
+
+        basic_json<Char,Alloc> val2_;
+        const basic_json<Char,Alloc>& val_;
     public:
         friend class basic_json<Char,Alloc>;
+
+        object_range members()
+        {
+            return object_range(val_);
+        }
+
+        const_object_range members() const
+        {
+            return const_object_range(val_);
+        }
+
+        array_range elements()
+        {
+            return array_range(val_);
+        }
+
+        const_array_range elements() const
+        {
+            return const_array_range(val_);
+        }
 
         const_object_iterator begin_members() const
         {
@@ -1015,9 +1179,15 @@ public:
             return val_.type();
         }
 
+        // Deprecated
         bool has_member(const std::basic_string<Char>& name) const
         {
             return val_.has_member(name);
+        }
+
+        size_t count(const std::basic_string<Char>& name) const
+        {
+            return val_.count(name);
         }
 
         template<typename T>
@@ -1031,9 +1201,15 @@ public:
             return val_.is_null();
         }
 
+        // Deprecated
         bool is_empty() const
         {
-            return val_.is_empty();
+            return empty();
+        }
+
+        bool empty() const
+        {
+            return val_.empty();
         }
 
         size_t capacity() const
@@ -1203,6 +1379,26 @@ public:
             return val_.at(name);
         }
 
+        object_iterator find(const std::basic_string<Char>& name)
+        {
+            return val_.find(name);
+        }
+
+        const_object_iterator find(const std::basic_string<Char>& name) const
+        {
+            return val_.find(name);
+        }
+
+        object_iterator find(const Char* name)
+        {
+            return val_.find(name);
+        }
+
+        const_object_iterator find(const Char* name) const
+        {
+            return val_.find(name);
+        }
+
         const basic_json<Char,Alloc>& get(const std::basic_string<Char>& name) const
         {
             return val_.get(name);
@@ -1245,438 +1441,508 @@ public:
             return os;
         }
 
-    private:
-        const_val_proxy(); // no op
-        const_val_proxy& operator = (const const_val_proxy& other); // noop
-
-        const_val_proxy(const basic_json<Char,Alloc>& val)
-            : val_(val)
-        {
-        }
-
-        template <typename T>
-        const_val_proxy(T val)
-            : val2_(val), val_(val2_)
-        {
-        }
-
-        basic_json<Char,Alloc> val2_;
-        const basic_json<Char,Alloc>& val_;
     };
 
     class object_key_proxy 
     {
+    private:
+        basic_json<Char,Alloc>& parent_;
+        const std::basic_string<Char>& name_;
+
+        object_key_proxy(); // noop
+        object_key_proxy& operator = (const object_key_proxy& other); // noop
+
+        object_key_proxy(basic_json<Char,Alloc>& parent, 
+              const std::basic_string<Char>& name)
+            : parent_(parent), name_(name)
+        {
+        }
+
+        basic_json<Char,Alloc>& evaluate() 
+        {
+            return parent_.at(name_);
+        }
+
+        const basic_json<Char,Alloc>& evaluate() const
+        {
+            return parent_.at(name_);
+        }
     public:
+
         friend class basic_json<Char,Alloc>;
 
-        member_iterator begin_members()
+        object_range members()
         {
-            return val_.at(name_).begin_members();
+            return object_range(evaluate());
+        }
+
+        const_object_range members() const
+        {
+            return const_object_range(evaluate());
+        }
+
+        array_range elements()
+        {
+            return array_range(evaluate());
+        }
+
+        const_array_range elements() const
+        {
+            return const_array_range(evaluate());
+        }
+
+        object_iterator begin_members()
+        {
+            return evaluate().begin_members();
         }
 
         const_object_iterator begin_members() const
         {
-            return val_.at(name_).begin_members();
+            return evaluate().begin_members();
         }
 
-        member_iterator end_members()
+        object_iterator end_members()
         {
-            return val_.at(name_).end_members();
+            return evaluate().end_members();
         }
 
         const_object_iterator end_members() const
         {
-            return val_.at(name_).end_members();
+            return evaluate().end_members();
         }
 
         array_iterator begin_elements()
         {
-            return val_.at(name_).begin_elements();
+            return evaluate().begin_elements();
         }
 
         const_array_iterator begin_elements() const
         {
-            return val_.at(name_).begin_elements();
+            return evaluate().begin_elements();
         }
 
         array_iterator end_elements()
         {
-            return val_.at(name_).end_elements();
+            return evaluate().end_elements();
         }
 
         const_array_iterator end_elements() const
         {
-            return val_.at(name_).end_elements();
+            return evaluate().end_elements();
         }
 
         size_t size() const
         {
-            return val_.at(name_).size();
+            return evaluate().size();
         }
 
         value_types::value_types_t type() const
         {
-            return val_.at(name_).type();
+            return evaluate().type();
         }
 
+        // Deprecated
         bool has_member(const std::basic_string<Char>& name) const
         {
-            return val_.at(name_).has_member(name);
+            return evaluate().has_member(name);
+        }
+
+        size_t count(const std::basic_string<Char>& name) const
+        {
+            return evaluate().count(name);
         }
 
         bool is_null() const
         {
-            return val_.at(name_).is_null();
+            return evaluate().is_null();
         }
 
+        // Deprecated
         bool is_empty() const
         {
-            return val_.at(name_).is_empty();
+            return empty();
+        }
+
+        bool empty() const
+        {
+            return evaluate().empty();
         }
 
         size_t capacity() const
         {
-            return val_.at(name_).capacity();
+            return evaluate().capacity();
         }
 
         void reserve(size_t n)
         {
-            val_.at(name_).reserve(n);
+            evaluate().reserve(n);
         }
 
         void resize(size_t n)
         {
-            val_.at(name_).resize(n);
+            evaluate().resize(n);
         }
 
         template <typename T>
         void resize(size_t n, T val)
         {
-            val_.at(name_).resize(n,val);
+            evaluate().resize(n,val);
         }
 
         void resize_array(size_t n)
         {
-            val_.at(name_).resize_array(n);
+            evaluate().resize_array(n);
         }
 
         template <typename T>
         void resize_array(size_t n, T val)
         {
-            val_.at(name_).resize_array(n,val);
+            evaluate().resize_array(n,val);
         }
 
         template<typename T>
         bool is() const
         {
-            return val_.at(name_).template is<T>();
+            return evaluate().template is<T>();
         }
 
         bool is_string() const
         {
-            return val_.at(name_).is_string();
+            return evaluate().is_string();
         }
 
         bool is_number() const
         {
-            return val_.at(name_).is_number();
+            return evaluate().is_number();
         }
 
         bool is_numeric() const
         {
-            return val_.at(name_).is_numeric();
+            return evaluate().is_numeric();
         }
 
         bool is_bool() const
         {
-            return val_.at(name_).is_bool();
+            return evaluate().is_bool();
         }
 
         bool is_object() const
         {
-            return val_.at(name_).is_object();
+            return evaluate().is_object();
         }
 
         bool is_array() const
         {
-            return val_.at(name_).is_array();
+            return evaluate().is_array();
         }
  
         bool is_any() const
         {
-            return val_.at(name_).is_any();
+            return evaluate().is_any();
         }
 
         bool is_longlong() const
         {
-            return val_.at(name_).is_longlong();
+            return evaluate().is_longlong();
         }
 
         bool is_ulonglong() const
         {
-            return val_.at(name_).is_ulonglong();
+            return evaluate().is_ulonglong();
         }
 
         bool is_double() const
         {
-            return val_.at(name_).is_double();
+            return evaluate().is_double();
         }
 
         std::basic_string<Char> as_string() const
         {
-            return val_.at(name_).as_string();
+            return evaluate().as_string();
         }
 
         std::basic_string<Char> as_string(const basic_output_format<Char>& format) const
         {
-            return val_.at(name_).as_string(format);
+            return evaluate().as_string(format);
         }
 
         template<typename T>
         T as() const
         {
-            return val_.at(name_).template as<T>();
+            return evaluate().template as<T>();
         }
 
         any& any_value()
         {
-            return val_.at(name_).any_value();
+            return evaluate().any_value();
         }
 
         const any& any_value() const
         {
-            return val_.at(name_).any_value();
+            return evaluate().any_value();
         }
 
         bool as_bool() const JSONCONS_NOEXCEPT
         {
-            return val_.at(name_).as_bool();
+            return evaluate().as_bool();
         }
 
         template <class T>
         std::vector<T> as_vector() const
         {
-            return val_.at(name_).template as_vector<T>();
+            return evaluate().template as_vector<T>();
         }
 
         double as_double() const
         {
-            return val_.at(name_).as_double();
+            return evaluate().as_double();
         }
 
         int as_int() const
         {
-            return val_.at(name_).as_int();
+            return evaluate().as_int();
         }
 
         unsigned int as_uint() const
         {
-            return val_.at(name_).as_uint();
+            return evaluate().as_uint();
         }
 
         long as_long() const
         {
-            return val_.at(name_).as_long();
+            return evaluate().as_long();
         }
 
         unsigned long as_ulong() const
         {
-            return val_.at(name_).as_ulong();
+            return evaluate().as_ulong();
         }
 
         long long as_longlong() const
         {
-            return val_.at(name_).as_longlong();
+            return evaluate().as_longlong();
         }
 
         unsigned long long as_ulonglong() const
         {
-            return val_.at(name_).as_ulonglong();
+            return evaluate().as_ulonglong();
         }
 
         template <class T>
         const T& any_cast() const
         {
-            return val_.at(name_).template any_cast<T>();
+            return evaluate().template any_cast<T>();
         }
         // Returns a const reference to the custom data associated with name
 
         template <class T>
         T& any_cast() 
         {
-            return val_.at(name_).template any_cast<T>();
+            return evaluate().template any_cast<T>();
         }
         // Returns a reference to the custom data associated with name
 
         operator basic_json&()
         {
-            return val_.at(name_);
+            return evaluate();
         }
 
         operator const basic_json&() const
         {
-            return val_.at(name_);
+            return evaluate();
         }
 
         template <typename T>
         object_key_proxy& operator=(T val)
         {
-            val_.set(name_, val);
+            parent_.set(name_, val);
             return *this;
         }
 
         object_key_proxy& operator=(const basic_json& val)
         {
-            val_.set(name_, val);
+            parent_.set(name_, val);
+            return *this;
+        }
+
+        object_key_proxy& operator=(basic_json<Char,Alloc>&& val)
+        {
+            parent_.set(name_, std::move(val));
             return *this;
         }
 
         bool operator==(const basic_json& val) const
         {
-            return val_.at(name_) == val;
+            return evaluate() == val;
         }
 
         bool operator!=(const basic_json& val) const
         {
-            return val_.at(name_) != val;
+            return evaluate() != val;
         }
 
         basic_json<Char,Alloc>& operator[](size_t i)
         {
-            return val_.at(name_)[i];
+            return evaluate()[i];
         }
 
         const basic_json<Char,Alloc>& operator[](size_t i) const
         {
-            return val_.at(name_)[i];
+            return evaluate()[i];
         }
 
         object_key_proxy operator[](const std::basic_string<Char>& name)
         {
-            return object_key_proxy(val_.at(name_),name);
+            return object_key_proxy(evaluate(),name);
         }
 
         const basic_json<Char,Alloc>& operator[](const std::basic_string<Char>& name) const
         {
-            return val_.at(name_).at(name);
+            return evaluate().at(name);
         }
 
         basic_json<Char,Alloc>& at(const std::basic_string<Char>& name)
         {
-            return val_.at(name_).at(name);
+            return evaluate().at(name);
         }
 
         const basic_json<Char,Alloc>& at(const std::basic_string<Char>& name) const
         {
-            return val_.at(name_).at(name);
+            return evaluate().at(name);
+        }
+
+        object_iterator find(const std::basic_string<Char>& name)
+        {
+            return evaluate().find(name);
+        }
+
+        const_object_iterator find(const std::basic_string<Char>& name) const
+        {
+            return evaluate().find(name);
+        }
+
+        object_iterator find(const Char* name)
+        {
+            return evaluate().find(name);
+        }
+
+        const_object_iterator find(const Char* name) const
+        {
+            return evaluate().find(name);
         }
 
         const basic_json<Char,Alloc>& get(const std::basic_string<Char>& name) const
         {
-            return val_.at(name_).get(name);
+            return evaluate().get(name);
         }
 
         template <typename T>
         const_val_proxy get(const std::basic_string<Char>& name, T default_val) const
         {
-            return val_.at(name_).get(name,default_val);
+            return evaluate().get(name,default_val);
         }
 
         void clear()
         {
-            val_.at(name_).clear();
+            evaluate().clear();
         }
         // Remove all elements from an array or object
 
         void remove_range(size_t from_index, size_t to_index)
         {
-            val_.at(name_).remove_range(from_index, to_index);
+            evaluate().remove_range(from_index, to_index);
         }
         // Remove a range of elements from an array 
 
         void remove_member(const std::basic_string<Char>& name)
         {
-            val_.at(name_).remove_member(name);
+            evaluate().remove_member(name);
         }
         // Remove a member from an object 
 /*
         template <typename T>
         void set(const std::basic_string<Char>& name, T value)
         {
-            val_.at(name_).set(name,value);
+            evaluate().set(name,value);
         }
 */
         void set(const std::basic_string<Char>& name, const basic_json<Char,Alloc>& value)
         {
-            val_.at(name_).set(name,value);
+            evaluate().set(name,value);
         }
 
         void set(std::basic_string<Char>&& name, basic_json<Char,Alloc>&& value)
 
         {
-            val_.at(name_).set(name,value);
+            evaluate().set(std::move(name),std::move(value));
+        }
+
+        void set(const std::basic_string<Char>& name, basic_json<Char,Alloc>&& value)
+
+        {
+            evaluate().set(name,std::move(value));
         }
 /*
         template <typename T>
         void add(T value)
         {
-            val_.at(name_).add(value);
+            evaluate().add(value);
         }
 
         template <typename T>
         void add(size_t index, T value)
         {
-            val_.at(name_).add(index, value);
+            evaluate().add(index, value);
         }
 */
         void add(basic_json<Char,Alloc>&& value)
         {
-            val_.at(name_).add(value);
+            evaluate().add(std::move(value));
         }
 
         void add(size_t index, basic_json<Char,Alloc>&& value)
         {
-            val_.at(name_).add(index, value);
+            evaluate().add(index, std::move(value));
         }
 
         void add(const basic_json<Char,Alloc>& value)
         {
-            val_.at(name_).add(value);
+            evaluate().add(value);
         }
 
         void add(size_t index, const basic_json<Char,Alloc>& value)
         {
-            val_.at(name_).add(index, value);
+            evaluate().add(index, value);
         }
 
         std::basic_string<Char> to_string() const
         {
-            return val_.at(name_).to_string();
+            return evaluate().to_string();
         }
 
         std::basic_string<Char> to_string(const basic_output_format<Char>& format) const
         {
-            return val_.at(name_).to_string(format);
+            return evaluate().to_string(format);
         }
 
         void to_stream(std::basic_ostream<Char>& os) const
         {
-            val_.at(name_).to_stream(os);
+            evaluate().to_stream(os);
         }
 
         void to_stream(std::basic_ostream<Char>& os, const basic_output_format<Char>& format) const
         {
-            val_.at(name_).to_stream(os,format);
+            evaluate().to_stream(os,format);
         }
 
         void to_stream(std::basic_ostream<Char>& os, const basic_output_format<Char>& format, bool indenting) const
         {
-            val_.at(name_).to_stream(os,format,indenting);
+            evaluate().to_stream(os,format,indenting);
         }
 
         void swap(basic_json<Char,Alloc>& val)
         {
-            val_.swap(val);
+            parent_.swap(val);
         }
 
         friend std::basic_ostream<Char>& operator<<(std::basic_ostream<Char>& os, const object_key_proxy& o)
@@ -1684,25 +1950,15 @@ public:
             o.to_stream(os);
             return os;
         }
-
-    private:
-        object_key_proxy(); // nopop
-        object_key_proxy& operator = (const object_key_proxy& other); // noop
-
-        object_key_proxy(basic_json<Char,Alloc>& var, 
-              const std::basic_string<Char>& name)
-            : val_(var), name_(name)
-        {
-        }
-
-        basic_json<Char,Alloc>& val_;
-
-        const std::basic_string<Char>& name_;
     };
 
     static basic_json parse(std::basic_istream<Char>& is);
 
     static basic_json parse(std::basic_istream<Char>& is, basic_parse_error_handler<Char>& err_handler);
+
+    static basic_json parse(const std::basic_string<Char>& s);
+
+    static basic_json parse(const std::basic_string<Char>& s, basic_parse_error_handler<Char>& err_handler);
 
     static basic_json parse_string(const std::basic_string<Char>& s);
 
@@ -1789,12 +2045,17 @@ public:
     }
 
     basic_json(json_array<Char,Alloc>&& other)
-        : var_(other)
+        : var_(std::move(other))
     {
     }
 
     basic_json(json_object<Char,Alloc>&& other)
-        : var_(other)
+        : var_(std::move(other))
+    {
+    }
+
+    basic_json(const object_key_proxy& proxy)
+        : var_(proxy.evaluate().var_)
     {
     }
 
@@ -1825,11 +2086,11 @@ public:
     {
     }
 
-    member_iterator begin_members();
+    object_iterator begin_members();
 
     const_object_iterator begin_members() const;
 
-    member_iterator end_members();
+    object_iterator end_members();
 
     const_object_iterator end_members() const;
 
@@ -1849,7 +2110,10 @@ public:
 
     basic_json& operator=(basic_json<Char,Alloc>&& rhs)
     {
-        var_ = std::move(rhs.var_);
+        if (this != &rhs)
+        {
+            var_ = std::move(rhs.var_);
+        }
         return *this;
     }
 
@@ -1889,7 +2153,33 @@ public:
         return var_.is_null();
     }
 
+    // Deprecated
     bool has_member(const std::basic_string<Char>& name) const;
+
+    size_t count(const std::basic_string<Char>& name) const
+    {
+        switch (var_.type_)
+        {
+        case value_types::object_t:
+            {
+                auto it = var_.value_.object_->find(name);
+                if (it == end_members())
+                {
+                    return 0;
+                }
+                size_t count = 0;
+                while (it != end_members() && it->name() == name)
+                {
+                    ++count;
+                    ++it;
+                }
+                return count;
+            }
+            break;
+        default:
+            return 0;
+        }
+    }
 
     template<typename T>
     bool is() const
@@ -1904,7 +2194,7 @@ public:
 
     bool is_numeric() const
     {
-        return var_.type_ == value_types::double_t || var_.type_ == value_types::integer_t || var_.type_ == value_types::unsigned_integer_t;
+        return var_.type_ == value_types::double_t || var_.type_ == value_types::integer_t || var_.type_ == value_types::uinteger_t;
     }
 
     bool is_bool() const
@@ -1934,7 +2224,7 @@ public:
 
     bool is_ulonglong() const
     {
-        return var_.type_ == value_types::unsigned_integer_t;
+        return var_.type_ == value_types::uinteger_t;
     }
 
     bool is_double() const
@@ -1942,7 +2232,13 @@ public:
         return var_.type_ == value_types::double_t;
     }
 
-    bool is_empty() const;
+    // Deprecated
+    bool is_empty() const
+    {
+        return empty();
+    }
+
+    bool empty() const;
 
     size_t capacity() const;
 
@@ -1983,8 +2279,8 @@ public:
             return var_.value_.float_value_ != 0.0;
         case value_types::integer_t:
             return var_.value_.integer_value_ != 0;
-        case value_types::unsigned_integer_t:
-            return var_.value_.unsigned_integer_value_ != 0;
+        case value_types::uinteger_t:
+            return var_.value_.uinteger_value_ != 0;
         case value_types::small_string_t:
             return var_.small_string_length_ != 0;
         case value_types::string_t:
@@ -2029,6 +2325,66 @@ public:
     basic_json<Char,Alloc>& at(const std::basic_string<Char>& name);
     const basic_json<Char,Alloc>& at(const std::basic_string<Char>& name) const;
 
+    object_iterator find(const std::basic_string<Char>& name)
+    {
+        switch (var_.type_)
+        {
+        case value_types::empty_object_t:
+            return end_members();
+        case value_types::object_t:
+            return var_.value_.object_->find(name);
+        default:
+            {
+                JSONCONS_THROW_EXCEPTION_1("Attempting to get %s from a value that is not an object", name);
+            }
+        }
+    }
+
+    const_object_iterator find(const std::basic_string<Char>& name) const
+    {
+        switch (var_.type_)
+        {
+        case value_types::empty_object_t:
+            return end_members();
+        case value_types::object_t:
+            return var_.value_.object_->find(name);
+        default:
+            {
+                JSONCONS_THROW_EXCEPTION_1("Attempting to get %s from a value that is not an object", name);
+            }
+        }
+    }
+
+    object_iterator find(const Char* name)
+    {
+        switch (var_.type_)
+        {
+        case value_types::empty_object_t:
+            return end_members();
+        case value_types::object_t:
+            return var_.value_.object_->find(name);
+        default:
+            {
+                JSONCONS_THROW_EXCEPTION_1("Attempting to get %s from a value that is not an object", name);
+            }
+        }
+    }
+
+    const_object_iterator find(const Char* name) const
+    {
+        switch (var_.type_)
+        {
+        case value_types::empty_object_t:
+            return end_members();
+        case value_types::object_t:
+            return var_.value_.object_->find(name);
+        default:
+            {
+                JSONCONS_THROW_EXCEPTION_1("Attempting to get %s from a value that is not an object", name);
+            }
+        }
+    }
+
     basic_json<Char,Alloc>& at(size_t i);
     const basic_json<Char,Alloc>& at(size_t i) const;
 
@@ -2071,9 +2427,52 @@ public:
 
     }
 */
-    void set(const std::basic_string<Char>& name, const basic_json<Char,Alloc>& value);
+    void set(const std::basic_string<Char>& name, const basic_json<Char, Alloc>& value)
+    {
+        switch (var_.type_)
+        {
+        case value_types::empty_object_t:
+            var_.type_ = value_types::object_t;
+            var_.value_.object_ = new json_object<Char, Alloc>();
+        case value_types::object_t:
+            var_.value_.object_->set(name, value);
+            break;
+        default:
+            {
+                JSONCONS_THROW_EXCEPTION_1("Attempting to set %s on a value that is not an object", name);
+            }
+        }
+    }
 
-    void set(std::basic_string<Char>&& name, basic_json<Char,Alloc>&& value);
+    void set(std::basic_string<Char>&& name, basic_json<Char, Alloc>&& value){
+        switch (var_.type_){
+        case value_types::empty_object_t:
+            var_.type_ = value_types::object_t;
+            var_.value_.object_ = new json_object<Char,Alloc>();
+        case value_types::object_t:
+            var_.value_.object_->set(std::move(name),std::move(value));
+            break;
+        default:
+            {
+                JSONCONS_THROW_EXCEPTION_1("Attempting to set %s on a value that is not an object",name);
+            }
+        }
+    }
+
+    void set(const std::basic_string<Char>& name, basic_json<Char, Alloc>&& value){
+        switch (var_.type_){
+        case value_types::empty_object_t:
+            var_.type_ = value_types::object_t;
+            var_.value_.object_ = new json_object<Char,Alloc>();
+        case value_types::object_t:
+            var_.value_.object_->set(name,std::move(value));
+            break;
+        default:
+            {
+                JSONCONS_THROW_EXCEPTION_1("Attempting to set %s on a value that is not an object",name);
+            }
+        }
+    }
 /*
     template <typename T>
     void add(T val)
@@ -2267,7 +2666,27 @@ public:
         return is_numeric();
     }
 
-    array& elements() 
+    object_range members()
+    {
+        return object_range(*this);
+    }
+
+    const_object_range members() const
+    {
+        return const_object_range(*this);
+    }
+
+    array_range elements()
+    {
+        return array_range(*this);
+    }
+
+    const_array_range elements() const
+    {
+        return const_array_range(*this);
+    }
+
+    array& array_value() 
     {
 		switch (var_.type_)
 		{
@@ -2279,7 +2698,7 @@ public:
         }
     }
 
-    const array& elements() const
+    const array& array_value() const
     {
         switch (var_.type_)
         {
@@ -2291,7 +2710,7 @@ public:
         }
     }
 
-    object& members()
+    object& object_value()
     {
         switch (var_.type_)
         {
@@ -2307,12 +2726,12 @@ public:
         }
     }
 
-    const object& members() const
+    const object& object_value() const
     {
         switch (var_.type_)
         {
         case value_types::empty_object_t:
-            return cobject().members();
+            return cobject().object_value();
         case value_types::object_t:
             return *(var_.value_.object_);
         default:
@@ -2377,6 +2796,26 @@ private:
             return basic_json<Char2,Allocator2>::make_3d_array (m, n, k, val);
         }
     };
+
+    friend std::basic_ostream<Char>& operator<<(std::basic_ostream<Char>& os, const basic_json<Char, Alloc>& o)
+    {
+        o.to_stream(os);
+        return os;
+    }
+
+    friend std::basic_istream<Char>& operator<<(std::basic_istream<Char>& is, basic_json<Char, Alloc>& o)
+    {
+        basic_json_deserializer<Char, Alloc> handler;
+        basic_json_reader<Char> reader(is, handler);
+        reader.read_next();
+        reader.check_done();
+        if (!handler.is_valid())
+        {
+            JSONCONS_THROW_EXCEPTION("Failed to parse json stream");
+        }
+        o = handler.get_result();
+        return is;
+    }
 
 private:
 	variant var_;

@@ -517,38 +517,51 @@ vertical-align:1px;
 <th>Time to read (s)</th>
 <th>Time to write (s)</th>
 <th>Memory footprint of json value (MB)</th>
+<th>Remarks</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="https://github.com/danielaparker/jsoncons">jsoncons</a></td>
-<td>6.756</td>
-<td>1.5</td>
-<td>1188</td>
+<td>5.944</td>
+<td>1.554</td>
+<td>1217</td>
+<td></td>
 </tr>
 <tr>
 <td><a href="https://github.com/miloyip/rapidjson">rapidjson</a></td>
-<td>2.569</td>
-<td>0.806</td>
-<td>850</td>
+<td>2.801</td>
+<td>0.809</td>
+<td>848</td>
+<td></td>
 </tr>
 <tr>
 <td><a href="https://github.com/nlohmann/json">nlohmann</a></td>
-<td>22.904</td>
-<td>9.76</td>
-<td>2792</td>
+<td>23.408</td>
+<td>9.778</td>
+<td>2795</td>
+<td></td>
 </tr>
 <tr>
 <td><a href="https://github.com/open-source-parsers/jsoncpp">jsoncpp</a></td>
-<td>14.606</td>
-<td>12.522</td>
-<td>3356</td>
+<td>14.315</td>
+<td>11.868</td>
+<td>3354</td>
+<td></td>
 </tr>
 <tr>
 <td><a href="http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented">json_spirit</a></td>
-<td>122.568</td>
-<td>9.063</td>
-<td>2221</td>
+<td>123.764</td>
+<td>10.832</td>
+<td>2051</td>
+<td>Boost spirit parsing is slow</td>
+</tr>
+<tr>
+<td><a href="https://github.com/vivkin/gason">gason</a></td>
+<td>1.708</td>
+<td>17.651</td>
+<td>1139</td>
+<td>No serialization function, using sample pretty-print code</td>
 </tr>
 </tbody>
 </table>

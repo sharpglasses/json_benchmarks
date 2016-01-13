@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "measurements.hpp"
+#include <string>
 
 using namespace json_benchmarks;
 	
@@ -11,10 +12,21 @@ measurements benchmark_rapidjson(const char *input_filename, const char *output_
 measurements benchmark_nlohmann(const char *input_filename, const char *output_filename);
 measurements benchmark_json_spirit(const char *input_filename, const char *output_filename);
 measurements benchmark_jsoncpp(const char *input_filename, const char *output_filename);
+measurements benchmark_gason(const char *input_filename, const char *output_filename);
+
+void output_result(std::ostream& os, char * const library_name, measurements const & results)
+{
+    os << library_name
+       << "|" << (results.time_to_read/1000.0) 
+       << "|" << (results.time_to_write/1000.0) 
+       << "|" << (results.memory_used)
+       << "|" << results.remarks
+       << std::endl; 
+}
 
 int main()
 {
-    try
+	try
     {
         const char *filename = "data/input/persons.json";
         make_big_file(filename, 1200000);
@@ -44,53 +56,30 @@ int main()
 
         os << std::endl;
 
-        os << "Library|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)" << std::endl;
-        os << "---|---|---|---" << std::endl;
+        os << "Library|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)|Remarks" << std::endl;
+        os << "---|---|---|---|---" << std::endl;
 
-        measurements results = benchmark_jsoncons("data/input/persons.json",
-                                                  "data/output/persons-jsoncons.json");
-        os << "[jsoncons](https://github.com/danielaparker/jsoncons)"
-           << "|" << (results.time_to_read/1000.0) 
-           << "|" << (results.time_to_write/1000.0) 
-           << "|" << (results.memory_used)
-           << std::endl; 
+        measurements results = benchmark_jsoncons("data/input/persons.json", "data/output/persons-jsoncons.json");
+        output_result(os,"[jsoncons](https://github.com/danielaparker/jsoncons)",results);
 
-        results = benchmark_rapidjson("data/input/persons.json",
-                                                    "data/output/persons-rapidjson.json");
-        os << "[rapidjson](https://github.com/miloyip/rapidjson)"
-           << "|" << (results.time_to_read/1000.0) 
-           << "|" << (results.time_to_write/1000.0) 
-           << "|" << (results.memory_used)
-           << std::endl; 
+        results = benchmark_rapidjson("data/input/persons.json", "data/output/persons-rapidjson.json");
+        output_result(os,"[rapidjson](https://github.com/miloyip/rapidjson)",results);
 
-        results = benchmark_nlohmann("data/input/persons.json",
-                                                   "data/output/persons-nlohmann.json");
-        os << "[nlohmann](https://github.com/nlohmann/json)"
-           << "|" << (results.time_to_read/1000.0) 
-           << "|" << (results.time_to_write/1000.0) 
-           << "|" << (results.memory_used)
-           << std::endl; 
+        results = benchmark_nlohmann("data/input/persons.json", "data/output/persons-nlohmann.json");
+        output_result(os,"[nlohmann](https://github.com/nlohmann/json)",results);
 
-		results = benchmark_jsoncpp("data/input/persons.json",
-			"data/output/persons-jsoncpp.json");
-        os << "[jsoncpp](https://github.com/open-source-parsers/jsoncpp)"
-           << "|" << (results.time_to_read/1000.0) 
-           << "|" << (results.time_to_write/1000.0) 
-           << "|" << (results.memory_used)
-           << std::endl; 
+		results = benchmark_jsoncpp("data/input/persons.json", "data/output/persons-jsoncpp.json");
+        output_result(os,"[jsoncpp](https://github.com/open-source-parsers/jsoncpp)",results);
 
-        results = benchmark_json_spirit("data/input/persons.json",
-                                                      "data/output/persons-json_spirit.json");
-        os << "[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)"
-           << "|" << (results.time_to_read/1000.0) 
-           << "|" << (results.time_to_write/1000.0) 
-           << "|" << (results.memory_used)
-           << std::endl; 
-    }
+        results = benchmark_json_spirit("data/input/persons.json", "data/output/persons-json_spirit.json");
+        output_result(os,"[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)",results);
+
+		results = benchmark_gason("data/input/persons.json", "data/output/persons-gason.json");
+		output_result(os, "[gason](https://github.com/vivkin/gason)", results);
+	}
     catch (const std::exception& e)
     {
         std::cout << e.what() << std::endl;
     }
-
 }
 

@@ -22,3 +22,6 @@ build/vs2015/test_driver.sdf
 build/vs2015/test_driver.vcxproj.user
 thirdpartylib/jsoncpp/build/vs2015/.vs/vs2015/v14/.suo
 thirdpartylib/jsoncpp/build/vs2015/vs2015.sdf
+thirdpartylib/gason/build/vs2015/.vs/gason/v14/.suo
+thirdpartylib/gason/build/vs2015/vs2015.sdf
+thirdpartylib/gason/build/vs2015/x64/Release/

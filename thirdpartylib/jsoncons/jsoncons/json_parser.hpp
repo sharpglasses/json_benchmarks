@@ -1878,7 +1878,7 @@ private:
         {
             try
             {
-                uint64_t d = string_to_unsigned_integer(number_buffer_.c_str(), number_buffer_.length());
+                uint64_t d = string_to_uinteger(number_buffer_.c_str(), number_buffer_.length());
                 handler_->value(d, *this);
             }
             catch (const std::exception&)
