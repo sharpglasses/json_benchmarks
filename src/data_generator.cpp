@@ -10,7 +10,7 @@ void make_big_file(const char *filename, size_t count)
     std::ofstream os(filename, std::ofstream::binary | std::ios_base::out| std::ios_base::trunc);
     if (os.bad() || !os.is_open())
     {
-        throw jsoncons::json_exception_1<char>("Cannot open file %s", std::string(filename));
+        throw jsoncons::json_exception_1<std::exception>("Cannot open file %s", std::string(filename));
     }
 
     jsoncons::output_format format;

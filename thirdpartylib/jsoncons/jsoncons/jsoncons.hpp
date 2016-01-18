@@ -8,6 +8,8 @@
 #ifndef JSONCONS_JSONCONS_HPP
 #define JSONCONS_JSONCONS_HPP
 
+#include <locale>
+#include <codecvt>
 #include <string>
 #include <vector>
 #include <cstdlib>
@@ -27,7 +29,7 @@ class buffered_ostream
     std::basic_ostream<Char>* os_;
     std::vector<Char> buffer_;
     Char * const begin_buffer_;
-	Char const * const end_buffer_;
+	const Char* const end_buffer_;
     Char* p_;
 public:
 	buffered_ostream(std::basic_ostream<Char>& os)
@@ -47,7 +49,7 @@ public:
         os_->flush();
     }
 
-	void write(Char const * s, size_t length)
+	void write(const Char* s, size_t length)
 	{
 		size_t diff = end_buffer_ - p_;
 		if (diff >= length)
@@ -92,22 +94,18 @@ struct null_type
 
 // json_exception
 
-class json_exception : public std::exception
+class json_exception 
 {
 public:
-    json_exception() JSONCONS_NOEXCEPT
-    {
-    }
-    ~json_exception() JSONCONS_NOEXCEPT
-    {
-    }
+    virtual const char* what() const JSONCONS_NOEXCEPT = 0;
 };
 
-class json_exception_0 : public json_exception
+template <typename Base>
+class json_exception_0 : public Base, public virtual json_exception
 {
 public:
     json_exception_0(std::string s) JSONCONS_NOEXCEPT
-        : message_(s)
+        : Base(""), message_(s)
     {
     }
     ~json_exception_0() JSONCONS_NOEXCEPT
@@ -121,13 +119,19 @@ private:
     std::string message_;
 };
 
-template <typename Char>
-class json_exception_1 : public json_exception
+template <typename Base>
+class json_exception_1 : public Base, public virtual json_exception
 {
 public:
-    json_exception_1(const std::string& format, const std::basic_string<Char>& arg1) JSONCONS_NOEXCEPT
-        : format_(format), arg1_(arg1)
+    json_exception_1(const std::string& format, const std::string& arg1) JSONCONS_NOEXCEPT
+        : Base(""), format_(format), arg1_(arg1)
     {
+    }
+    json_exception_1(const std::string& format, const std::wstring& arg1) JSONCONS_NOEXCEPT
+        : Base(""), format_(format)
+    {
+        std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+        arg1_ = converter.to_bytes(arg1);
     }
     ~json_exception_1() JSONCONS_NOEXCEPT
     {
@@ -139,17 +143,17 @@ public:
     }
 private:
     std::string format_;
-    std::basic_string<Char> arg1_;
+    std::string arg1_;
     char message_[255];
 };
 
 #define JSONCONS_STR2(x)  #x
 #define JSONCONS_STR(x)  JSONCONS_STR2(x)
 
-#define JSONCONS_THROW_EXCEPTION(x) throw jsoncons::json_exception_0((x))
-#define JSONCONS_THROW_EXCEPTION_1(fmt,arg1) throw jsoncons::json_exception_1<Char>((fmt),(arg1))
+#define JSONCONS_THROW_EXCEPTION(Base,x) throw jsoncons::json_exception_0<Base>((x))
+#define JSONCONS_THROW_EXCEPTION_1(Base,fmt,arg1) throw jsoncons::json_exception_1<Base>((fmt),(arg1))
 #define JSONCONS_ASSERT(x) if (!(x)) { \
-	throw jsoncons::json_exception_0("assertion '" #x "' failed at " __FILE__ ":" \
+	throw jsoncons::json_exception_0<std::exception>("assertion '" #x "' failed at " __FILE__ ":" \
 			JSONCONS_STR(__LINE__)); }
 
 // json_char_traits
