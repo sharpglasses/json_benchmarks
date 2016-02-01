@@ -2,8 +2,7 @@
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-// See https://sourceforge.net/projects/jsoncons/files/ for latest version
-// See https://sourceforge.net/p/jsoncons/wiki/Home/ for documentation.
+// See https://github.com/danielaparker/jsoncons for latest version
 
 #ifndef JSONCONS_JSON_SERIALIZER_HPP
 #define JSONCONS_JSON_SERIALIZER_HPP
@@ -22,8 +21,8 @@
 
 namespace jsoncons {
 
-template<typename Char>
-class basic_json_serializer : public basic_json_output_handler<Char>
+template<typename CharT>
+class basic_json_serializer : public basic_json_output_handler<CharT>
 {
     static const size_t default_buffer_length = 16384;
 
@@ -42,16 +41,16 @@ class basic_json_serializer : public basic_json_output_handler<Char>
         size_t count_;
         bool content_indented_;
     };
-    basic_output_format<Char> format_;
+    basic_output_format<CharT> format_;
     std::vector<stack_item> stack_;
     int indent_;
     std::streamsize original_precision_;
     std::ios_base::fmtflags original_format_flags_;
     bool indenting_;
-    float_printer<Char> fp_;
-    buffered_ostream<Char> bos_;
+    float_printer<CharT> fp_;
+    buffered_ostream<CharT> bos_;
 public:
-    basic_json_serializer(std::basic_ostream<Char>& os)
+    basic_json_serializer(std::basic_ostream<CharT>& os)
        : indent_(0), 
          indenting_(false),
          fp_(format_.precision()),
@@ -59,7 +58,7 @@ public:
     {
     }
 
-    basic_json_serializer(std::basic_ostream<Char>& os, bool indenting)
+    basic_json_serializer(std::basic_ostream<CharT>& os, bool indenting)
        : indent_(0), 
          indenting_(indenting),
          fp_(format_.precision()),
@@ -67,7 +66,7 @@ public:
     {
     }
 
-    basic_json_serializer(std::basic_ostream<Char>& os, const basic_output_format<Char>& format)
+    basic_json_serializer(std::basic_ostream<CharT>& os, const basic_output_format<CharT>& format)
        : format_(format), 
          indent_(0),
          indenting_(false),  
@@ -75,7 +74,7 @@ public:
          bos_(os)
     {
     }
-    basic_json_serializer(std::basic_ostream<Char>& os, const basic_output_format<Char>& format, bool indenting)
+    basic_json_serializer(std::basic_ostream<CharT>& os, const basic_output_format<CharT>& format, bool indenting)
        : format_(format), 
          indent_(0), 
          indenting_(indenting),  
@@ -151,11 +150,11 @@ private:
         end_value();
     }
 
-    void do_name(const Char* name, size_t length) override
+    void do_name(const CharT* name, size_t length) override
     {
         begin_element();
         bos_.put('\"');
-        escape_string<Char>(name, length, format_, bos_);
+        escape_string<CharT>(name, length, format_, bos_);
         bos_.put('\"');
         bos_.put(':');
     }
@@ -164,17 +163,17 @@ private:
     {
         begin_value();
 
-        bos_.write(json_char_traits<Char,sizeof(Char)>::null_literal());
+        bos_.write(json_char_traits<CharT,sizeof(CharT)>::null_literal());
 
         end_value();
     }
 
-    void do_string_value(const Char* value, size_t length) override
+    void do_string_value(const CharT* value, size_t length) override
     {
         begin_value();
 
         bos_. put('\"');
-        escape_string<Char>(value, length, format_, bos_);
+        escape_string<CharT>(value, length, format_, bos_);
         bos_. put('\"');
 
         end_value();
@@ -198,7 +197,7 @@ private:
         }
         //else if (format_.floatfield() != 0)
         //{
-            //std::basic_ostringstream<Char> os;
+            //std::basic_ostringstream<CharT> os;
             //os.imbue(std::locale::classic());
             //os.setf(format_.floatfield(), std::ios::floatfield);
             //os << std::showpoint << std::setprecision(format_.precision()) << value;
@@ -232,11 +231,11 @@ private:
 
         if (value)
         {
-            bos_.write(json_char_traits<Char,sizeof(Char)>::true_literal());
+            bos_.write(json_char_traits<CharT,sizeof(CharT)>::true_literal());
         }
         else
         {
-            bos_.write(json_char_traits<Char,sizeof(Char)>::false_literal());
+            bos_.write(json_char_traits<CharT,sizeof(CharT)>::false_literal());
         }
 
         end_value();

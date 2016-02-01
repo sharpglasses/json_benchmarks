@@ -5,6 +5,7 @@
 #include "json_spirit/json_spirit_writer_template.h"
 #include <chrono>
 #include "../measurements.hpp"
+#include "../features.hpp"
 #include "../memory_measurer.hpp"
 #include <fstream>
 
@@ -17,6 +18,8 @@ using namespace json_spirit;
 #ifndef JSON_SPIRIT_VALUE_ENABLED
 #define JSON_SPIRIT_VALUE_ENABLED
 #endif
+
+const std::string library_name = "[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)";
 
 measurements benchmark_json_spirit(const char *input_filename,
                                    const char* output_filename)
@@ -61,6 +64,7 @@ measurements benchmark_json_spirit(const char *input_filename,
     size_t final_memory_used = memory_measurer::virtual_memory_currently_used_by_current_process();
 	
 	measurements results;
+    results.library_name = library_name;
     results.memory_used = (end_memory_used - start_memory_used)/1000000;
     results.time_to_read = time_to_read;
     results.time_to_write = time_to_write;
@@ -68,4 +72,18 @@ measurements benchmark_json_spirit(const char *input_filename,
     return results;
 }
 
+
+features features_json_spirit()
+{
+    std::cout << library_name << std::endl;
+    Value val;
+    write_stream(val, std::cout);
+    //std::cout << val << std::endl;
+    features results;
+    results.library_name = library_name;
+    results.default_construction = "`Value val;` `write_stream(val, std::cout);`";
+    results.default_result = "null";
+
+    return results;
+}
 

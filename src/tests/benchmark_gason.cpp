@@ -8,12 +8,15 @@
 #include <vector>
 #include "gason.h"
 #include "../measurements.hpp"
+#include "../features.hpp"
 #include "../memory_measurer.hpp"
 
 using std::chrono::high_resolution_clock;
 using std::chrono::time_point;
 using std::chrono::duration;
 using namespace json_benchmarks;
+
+const std::string library_name = "[gason](https://github.com/vivkin/gason)";
 
 void dumpValue(FILE *fp, JsonValue o, int indent = 0);
 
@@ -74,11 +77,27 @@ measurements benchmark_gason(const char *input_filename,
     size_t final_memory_used = memory_measurer::virtual_memory_currently_used_by_current_process();
 	
 	measurements results;
+    results.library_name = library_name;
     results.memory_used = (end_memory_used - start_memory_used)/1000000;
     results.time_to_read = time_to_read;
     results.time_to_write = time_to_write;
     results.remarks = "No serialization function, using sample pretty-print code";
     return results;
 }
+
+features features_gason()
+{
+    //std::cout << "gason" << std::endl;
+    //JsonValue val;
+    //dumpValue(stdout,val);
+
+    features results;
+    results.library_name = library_name;
+    results.default_construction = "`JsonValue val;` `dumpValue(val);`";
+    results.default_result = "null";
+
+    return results;
+}
+
 
 

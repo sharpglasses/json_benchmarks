@@ -2,8 +2,7 @@
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-// See https://sourceforge.net/projects/jsoncons/files/ for latest version
-// See https://sourceforge.net/p/jsoncons/wiki/Home/ for documentation.
+// See https://github.com/danielaparker/jsoncons for latest version
 
 #ifndef JSONCONS_JSONCONS_HPP
 #define JSONCONS_JSONCONS_HPP
@@ -18,73 +17,9 @@
 #include <iostream>
 #include <vector>
 #include "jsoncons/jsoncons_config.hpp"
+#include "jsoncons/jsoncons_io.hpp"
 
 namespace jsoncons {
-
-template <typename Char>
-class buffered_ostream
-{
-    static const size_t default_buffer_length = 16384;
-
-    std::basic_ostream<Char>* os_;
-    std::vector<Char> buffer_;
-    Char * const begin_buffer_;
-	const Char* const end_buffer_;
-    Char* p_;
-public:
-	buffered_ostream(std::basic_ostream<Char>& os)
-		: os_(std::addressof(os)), buffer_(default_buffer_length), begin_buffer_(buffer_.data()), end_buffer_(buffer_.data()+default_buffer_length), p_(buffer_.data())
-	{
-	}
-	~buffered_ostream()
-	{
-		os_->write(begin_buffer_, (p_ - begin_buffer_));
-		os_->flush();
-	}
-
-    void flush()
-    {
-        os_->write(begin_buffer_, (p_ - begin_buffer_));
-        p_ = begin_buffer_;
-        os_->flush();
-    }
-
-	void write(const Char* s, size_t length)
-	{
-		size_t diff = end_buffer_ - p_;
-		if (diff >= length)
-		{
-			std::memcpy(p_, s, length*sizeof(Char));
-			p_ += length;
-		}
-		else
-		{
-			os_->write(begin_buffer_, (p_ - begin_buffer_));
-			os_->write(s, length);
-			p_ = begin_buffer_;
-		}
-	}
-
-    void write(const std::basic_string<Char>& s)
-    {
-        write(s.c_str(),s.length());
-    }
-
-	void put(Char c)
-	{
-		if (p_ < end_buffer_)
-		{
-			*p_++ = c;
-		}
-		else
-		{
-			os_->write(begin_buffer_, (p_-begin_buffer_));
-			p_ = begin_buffer_;
-			*p_++ = c;
-		}
-	}
-
-};
 
 // null_type
 
@@ -163,7 +98,7 @@ const uint16_t max_lead_surrogate = 0xDBFF;
 const uint16_t min_trail_surrogate = 0xDC00;
 const uint16_t max_trail_surrogate = 0xDFFF;
 
-template <typename Char,size_t Size>
+template <typename CharT,size_t Size>
 struct json_char_traits
 {
 };

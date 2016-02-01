@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cassert>
 #include "../measurements.hpp"
+#include "../features.hpp"
 #include "../memory_measurer.hpp"
 
 using std::chrono::high_resolution_clock;
@@ -16,6 +17,8 @@ using std::chrono::duration;
 
 using namespace json_benchmarks;
 using namespace rapidjson;
+
+const std::string library_name = "[rapidjson](https://github.com/miloyip/rapidjson)";
 
 measurements benchmark_rapidjson(const char *input_filename,
                                  const char* output_filename)
@@ -71,9 +74,51 @@ measurements benchmark_rapidjson(const char *input_filename,
     size_t final_memory_used = memory_measurer::virtual_memory_currently_used_by_current_process();
 	
 	measurements results;
+    results.library_name = library_name;
     results.memory_used = (end_memory_used - start_memory_used)/1000000;
     results.time_to_read = time_to_read;
     results.time_to_write = time_to_write;
     return results;
 }
+
+features features_rapidjson()
+{
+    std::cout << "rapidjson" << std::endl;
+
+    // Default 
+    Value val;
+
+    char buffer[255];
+    FileWriteStream os(stdout, buffer, sizeof(buffer));
+    Writer<FileWriteStream> writer(os);
+    val.Accept(writer);
+    os.Flush();
+
+
+    //std::cout << "type" << root.IsNull() << std::endl;
+    //std::cout << "default: " << root << std::endl;
+    //std::cout << std::endl;
+
+    //root["key1"] = "value1";
+
+    //Value a = root;
+    //a["key1"] = "value2";
+
+    //std::cout << "copy: " << root << "," << a << std::endl;
+
+    Value b(123);
+    Value c(456);
+
+    //std::cout << c << std::endl;
+
+    c = b;
+
+    features results;
+    results.library_name = library_name;
+    results.default_construction = "`Value val;``char buffer[255];` `FileWriteStream os(stdout, buffer, sizeof(buffer));` `Writer<FileWriteStream> writer(os);` `val.Accept(writer);` `os.Flush();`";
+    results.default_result = "null";
+
+    return results;
+
+};
 

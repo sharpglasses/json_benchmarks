@@ -2,12 +2,16 @@
 #include <chrono>
 #include "nlohmann/json.hpp"
 #include "../measurements.hpp"
+#include "../features.hpp"
 #include "../memory_measurer.hpp"
 
 using std::chrono::high_resolution_clock;
 using std::chrono::time_point;
 using std::chrono::duration;
 using namespace json_benchmarks;
+using namespace nlohmann;
+
+const std::string library_name = "[nlohmann](https://github.com/nlohmann/json)";
 
 measurements benchmark_nlohmann(const char *input_filename,
                                 const char* output_filename)
@@ -51,10 +55,29 @@ measurements benchmark_nlohmann(const char *input_filename,
     size_t final_memory_used = memory_measurer::virtual_memory_currently_used_by_current_process();
 	
 	measurements results;
+    results.library_name = library_name;
     results.memory_used = (end_memory_used - start_memory_used)/1000000;
     results.time_to_read = time_to_read;
     results.time_to_write = time_to_write;
     return results;
 }
+
+features features_nlohmann()
+{
+    std::cout << library_name << std::endl;
+
+    // Default 
+
+    json val;
+    std::cout << val << std::endl;
+
+    features results;
+    results.library_name = library_name;
+    results.default_construction = "`json val;` `std::cout << val;`";
+    results.default_result = "null";
+
+    return results;
+
+};
 
 

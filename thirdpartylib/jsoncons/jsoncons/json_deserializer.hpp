@@ -2,8 +2,7 @@
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
-// See https://sourceforge.net/projects/jsoncons/files/ for latest version
-// See https://sourceforge.net/p/jsoncons/wiki/Home/ for documentation.
+// See https://github.com/danielaparker/jsoncons for latest version
 
 #ifndef JSONCONS_JSON_DESERIALIZER_HPP
 #define JSONCONS_JSON_DESERIALIZER_HPP
@@ -25,16 +24,22 @@ class basic_json_deserializer : public basic_json_input_handler<typename JsonT::
     static const int default_depth = 100;
 
     typedef typename JsonT::char_type char_type;
+    typedef typename JsonT::member_type member_type;
+    typedef typename JsonT::allocator_type allocator_type;
+    typedef typename JsonT::array array;
+    typedef typename JsonT::object object;
+    typedef typename array::value_type value_type;
 
     struct stack_item
     {
-        std::basic_string<char_type> name;
+        member_type member;
         JsonT value;
     };
 
 public:
-    basic_json_deserializer()
-        : top_(-1),
+    basic_json_deserializer(const allocator_type allocator = allocator_type())
+        : result_(allocator),
+          top_(-1),
           stack_(default_depth),
           depth_(default_depth),
           is_valid_(true) // initial json value is an empty object
@@ -70,7 +75,7 @@ private:
             depth_ *= 2;
             stack_.resize(depth_);
         }
-        stack_[top_].value = JsonT();
+        stack_[top_].value = object(result_.get_allocator());
     }
 
     void push_array()
@@ -81,7 +86,7 @@ private:
             depth_ *= 2;
             stack_.resize(depth_);
         }
-        stack_[top_].value = typename JsonT::make_array();
+        stack_[top_].value = array(result_.get_allocator());
     }
 
     void pop_object()
@@ -118,9 +123,10 @@ private:
         {
             if (stack_[top_-1].value.is_object())
             {
-                stack_[top_-1].value.object_value().push_back(std::move(stack_[top_-1].name),std::move(stack_[top_].value));
+                stack_[top_-1].member.value(std::move(stack_[top_].value));
+                stack_[top_-1].value.object_value().bulk_insert(std::move(stack_[top_-1].member));
             }
-            else if (stack_[top_-1].value.is_array()) 
+            else
             {
                 stack_[top_-1].value.array_value().push_back(std::move(stack_[top_].value));
             }
@@ -143,9 +149,10 @@ private:
         {
             if (stack_[top_-1].value.is_object())
             {
-                stack_[top_-1].value.object_value().push_back(std::move(stack_[top_-1].name),std::move(stack_[top_].value));
+                stack_[top_-1].member.value(std::move(stack_[top_].value));
+                stack_[top_-1].value.object_value().bulk_insert(std::move(stack_[top_-1].member));
             }
-            else if (stack_[top_-1].value.is_array()) 
+            else
             {
                 stack_[top_-1].value.array_value().push_back(std::move(stack_[top_].value));
             }
@@ -159,7 +166,7 @@ private:
 
     void do_name(const char_type* p, size_t length, const basic_parsing_context<char_type>&) override
     {
-        stack_[top_].name = std::basic_string<char_type>(p,length);
+        stack_[top_].member = member_type(p,length,result_.get_allocator());
     }
 
     void do_string_value(const char_type* p, size_t length, const basic_parsing_context<char_type>&) override
@@ -170,11 +177,12 @@ private:
         }
         else if (stack_[top_].value.is_object())
         {
-            stack_[top_].value.object_value().push_back(std::move(stack_[top_].name),JsonT(p,length));
+            stack_[top_].member.value(value_type(p,length,result_.get_allocator()));
+            stack_[top_].value.object_value().bulk_insert(std::move(stack_[top_].member));
         } 
-        else if (stack_[top_].value.is_array()) 
+        else
         {
-            stack_[top_].value.array_value().push_back(JsonT(p,length));
+            stack_[top_].value.array_value().push_back(JsonT(p,length,result_.get_allocator()));
         }
     }
 
@@ -186,11 +194,12 @@ private:
         }
         else if (stack_[top_].value.is_object())
         {
-            stack_[top_].value.object_value().push_back(std::move(stack_[top_].name),JsonT(value));
+            stack_[top_].member.value(value_type(value,result_.get_allocator()));
+            stack_[top_].value.object_value().bulk_insert(std::move(stack_[top_].member));
         } 
-        else if (stack_[top_].value.is_array()) 
+        else
         {
-            stack_[top_].value.array_value().push_back(value);
+            stack_[top_].value.array_value().push_back(value_type(value,result_.get_allocator()));
         }
     }
 
@@ -202,11 +211,12 @@ private:
         }
         else if (stack_[top_].value.is_object())
         {
-            stack_[top_].value.object_value().push_back(std::move(stack_[top_].name),JsonT(value));
+            stack_[top_].member.value(value_type(value,result_.get_allocator()));
+            stack_[top_].value.object_value().bulk_insert(std::move(stack_[top_].member));
         } 
-        else if (stack_[top_].value.is_array()) 
+        else
         {
-            stack_[top_].value.array_value().push_back(value);
+            stack_[top_].value.array_value().push_back(value_type(value,result_.get_allocator()));
         }
     }
 
@@ -218,11 +228,12 @@ private:
         }
         else if (stack_[top_].value.is_object())
         {
-            stack_[top_].value.object_value().push_back(std::move(stack_[top_].name),JsonT(value));
+            stack_[top_].member.value(value_type(value,result_.get_allocator()));
+            stack_[top_].value.object_value().bulk_insert(std::move(stack_[top_].member));
         } 
-        else if (stack_[top_].value.is_array()) 
+        else
         {
-            stack_[top_].value.array_value().push_back(value);
+            stack_[top_].value.array_value().push_back(value_type(value,result_.get_allocator()));
         }
     }
 
@@ -234,11 +245,12 @@ private:
         }
         else if (stack_[top_].value.is_object())
         {
-            stack_[top_].value.object_value().push_back(std::move(stack_[top_].name),JsonT(value));
+            stack_[top_].member.value(value_type(value,result_.get_allocator()));
+            stack_[top_].value.object_value().bulk_insert(std::move(stack_[top_].member));
         } 
-        else if (stack_[top_].value.is_array()) 
+        else
         {
-            stack_[top_].value.array_value().push_back(value);
+            stack_[top_].value.array_value().push_back(value_type(value,result_.get_allocator()));
         }
     }
 
@@ -250,11 +262,12 @@ private:
         }
         else if (stack_[top_].value.is_object())
         {
-            stack_[top_].value.object_value().push_back(std::move(stack_[top_].name),std::move(JsonT(null_type())));
+            stack_[top_].member.value(value_type(null_type(),result_.get_allocator()));
+            stack_[top_].value.object_value().bulk_insert(std::move(stack_[top_].member));
         } 
-        else if (stack_[top_].value.is_array()) 
+        else
         {
-            stack_[top_].value.array_value().push_back(JsonT::null);
+            stack_[top_].value.array_value().push_back(value_type(null_type(),result_.get_allocator()));
         }
     }
 

@@ -5,22 +5,16 @@
 // See https://sourceforge.net/projects/jsoncons/files/ for latest version
 // See https://sourceforge.net/p/jsoncons/wiki/Home/ for documentation.
 
-#ifndef JSON_BENCHMARKS_MEASUREMENTS_HPP
-#define JSON_BENCHMARKS_MEASUREMENTS_HPP
-
-#include <chrono>
-#include <string>
+#ifndef JSON_BENCHMARKS_FEATURES_HPP
+#define JSON_BENCHMARKS_FEATURES_HPP
 
 namespace json_benchmarks {
 
-struct measurements
+struct features
 {
     std::string library_name;
-    size_t memory_used;
-    size_t time_to_read;
-    size_t time_to_write;
-    std::string remarks;
-
+    std::string default_construction;
+    std::string default_result;
 };
 
 }

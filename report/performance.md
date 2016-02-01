@@ -1,4 +1,6 @@
-# Performance Benchmark Report
+
+## Read and Write Time Comparison
+
 
 Input filename|Size (MB)|Content
 ---|---|---
@@ -12,9 +14,22 @@ Compiler|Visual Studio 2015
 
 Library|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)|Remarks
 ---|---|---|---|---
-[jsoncons](https://github.com/danielaparker/jsoncons)|5.759|1.276|1217|
-[rapidjson](https://github.com/miloyip/rapidjson)|2.53|0.821|847|
-[nlohmann](https://github.com/nlohmann/json)|22.946|9.585|2794|
-[jsoncpp](https://github.com/open-source-parsers/jsoncpp)|14.707|11.894|3355|
-[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)|116.362|9.21|2188|Boost spirit parsing is slow
-[gason](https://github.com/vivkin/gason)|1.696|16.707|1137|No serialization function, using sample pretty-print code
+[jsoncons](https://github.com/danielaparker/jsoncons)|6.021|1.395|1212|
+[rapidjson](https://github.com/miloyip/rapidjson)|2.359|0.777|845|
+[nlohmann](https://github.com/nlohmann/json)|21.961|9.482|2796|
+[jsoncpp](https://github.com/open-source-parsers/jsoncpp)|14.502|7.36|3353|
+[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)|111.186|8.701|1197|Boost spirit parsing is slow
+[gason](https://github.com/vivkin/gason)|1.578|15.814|1133|No serialization function, using sample pretty-print code
+
+## API Comparison
+
+### Default value
+
+Library|Code|Result
+---|---|---
+[jsoncons](https://github.com/danielaparker/jsoncons)|`json val;` `std::cout << val;`|{}
+[rapidjson](https://github.com/miloyip/rapidjson)|`Value val;``char buffer[255];` `FileWriteStream os(stdout, buffer, sizeof(buffer));` `Writer<FileWriteStream> writer(os);` `val.Accept(writer);` `os.Flush();`|null
+[nlohmann](https://github.com/nlohmann/json)|`json val;` `std::cout << val;`|null
+[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)|`Value val;` `write_stream(val, std::cout);`|null
+[jsoncpp](https://github.com/open-source-parsers/jsoncpp)|`Value val;` `std::cout << val;`|null
+[gason](https://github.com/vivkin/gason)|`JsonValue val;` `dumpValue(val);`|null

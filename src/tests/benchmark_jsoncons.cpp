@@ -2,12 +2,16 @@
 #include "jsoncons/json_reader.hpp"
 #include <chrono>
 #include "../measurements.hpp"
+#include "../features.hpp"
 #include "../memory_measurer.hpp"
 
 using std::chrono::high_resolution_clock;
 using std::chrono::time_point;
 using std::chrono::duration;
 using namespace json_benchmarks;
+using namespace jsoncons;
+
+const std::string library_name = "[jsoncons](https://github.com/danielaparker/jsoncons)";
 
 measurements benchmark_jsoncons(const char *input_filename,
                                 const char* output_filename)
@@ -26,6 +30,7 @@ measurements benchmark_jsoncons(const char *input_filename,
                 try
                 {
                     root = jsoncons::json::parse_file(input_filename);
+                    root.shrink_to_fit();
                     auto end = high_resolution_clock::now();
                     time_to_read = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
                 }
@@ -51,10 +56,27 @@ measurements benchmark_jsoncons(const char *input_filename,
     size_t final_memory_used = memory_measurer::virtual_memory_currently_used_by_current_process();
 	
 	measurements results;
+    results.library_name = library_name;
     results.memory_used = (end_memory_used - start_memory_used)/1000000;
     results.time_to_read = time_to_read;
     results.time_to_write = time_to_write;
     return results;
+}
+
+features features_jsoncons()
+{
+    std::cout << library_name << std::endl;
+
+    //json val;
+    //std::cout << val << std::endl;
+
+    features results;
+    results.library_name = library_name;
+    results.default_construction = "`json val;` `std::cout << val;`";
+    results.default_result = "{}";
+
+    return results;
+
 }
 
 
