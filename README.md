@@ -2,7 +2,8 @@
 
 The purpose of these benchmarks is to measure how [jsoncons](https://github.com/danielaparker/jsoncons) compares to other `json` libraries.
 
-## Performance Benchmark Report
+## Read and Write Time Comparison
+
 
 Input filename|Size (MB)|Content
 ---|---|---
@@ -16,9 +17,22 @@ Compiler|Visual Studio 2015
 
 Library|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)|Remarks
 ---|---|---|---|---
-[jsoncons](https://github.com/danielaparker/jsoncons)|5.944|1.554|1217|
-[rapidjson](https://github.com/miloyip/rapidjson)|2.801|0.809|848|
-[nlohmann](https://github.com/nlohmann/json)|23.408|9.778|2795|
-[jsoncpp](https://github.com/open-source-parsers/jsoncpp)|14.315|11.868|3354|
-[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)|123.764|10.832|2051|Boost spirit parsing is slow
-[gason](https://github.com/vivkin/gason)|1.708|17.651|1139|No serialization function, using sample pretty-print code
+[jsoncons](https://github.com/danielaparker/jsoncons)|6.021|1.395|1212|
+[rapidjson](https://github.com/miloyip/rapidjson)|2.359|0.777|845|
+[nlohmann](https://github.com/nlohmann/json)|21.961|9.482|2796|
+[jsoncpp](https://github.com/open-source-parsers/jsoncpp)|14.502|7.36|3353|
+[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)|111.186|8.701|1197|Boost spirit parsing is slow
+[gason](https://github.com/vivkin/gason)|1.578|15.814|1133|No serialization function, using sample pretty-print code
+
+## API Comparison
+
+### Default value
+
+Library|Code|Result
+---|---|---
+[jsoncons](https://github.com/danielaparker/jsoncons)|`json val;` `std::cout << val;`|{}
+[rapidjson](https://github.com/miloyip/rapidjson)|`Value val;``char buffer[255];` `FileWriteStream os(stdout, buffer, sizeof(buffer));` `Writer<FileWriteStream> writer(os);` `val.Accept(writer);` `os.Flush();`|null
+[nlohmann](https://github.com/nlohmann/json)|`json val;` `std::cout << val;`|null
+[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)|`Value val;` `write_stream(val, std::cout);`|null
+[jsoncpp](https://github.com/open-source-parsers/jsoncpp)|`Value val;` `std::cout << val;`|null
+[gason](https://github.com/vivkin/gason)|`JsonValue val;` `dumpValue(val);`|null
