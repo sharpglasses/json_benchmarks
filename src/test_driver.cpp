@@ -5,7 +5,7 @@
 #include <string>
 
 using namespace json_benchmarks;
-	
+    
 void make_big_file(const char *filename, size_t count);
 
 measurements benchmark_jsoncons(const char *input_filename, const char *output_filename);
@@ -42,7 +42,7 @@ void output_features(std::ostream& os, features const & list)
 
 int main()
 {
-	try
+    try
     {
         const char *filename = "data/input/persons.json";
         make_big_file(filename, 1200000);
@@ -85,15 +85,16 @@ int main()
         results = benchmark_nlohmann("data/input/persons.json", "data/output/persons-nlohmann.json");
         output_measurements(os,results);
 
-		results = benchmark_jsoncpp("data/input/persons.json", "data/output/persons-jsoncpp.json");
+        results = benchmark_jsoncpp("data/input/persons.json", "data/output/persons-jsoncpp.json");
         output_measurements(os,results);
 
         results = benchmark_json_spirit("data/input/persons.json", "data/output/persons-json_spirit.json");
         output_measurements(os,results);
 
-		results = benchmark_gason("data/input/persons.json", "data/output/persons-gason.json");
-		output_measurements(os, results);
-
+        results = benchmark_gason("data/input/persons.json", "data/output/persons-gason.json");
+        output_measurements(os, results);
+/*
+*/
         os << std::endl;
         os << "## API Comparison\n\n";
         os << "### Default value\n\n";
@@ -109,8 +110,6 @@ int main()
         list = features_json_spirit();
         output_features(os,list);
         list = features_jsoncpp();
-        output_features(os,list);
-        list = features_gason();
         output_features(os,list);
     }
     catch (const std::exception& e)

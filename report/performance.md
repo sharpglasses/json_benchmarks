@@ -14,12 +14,12 @@ Compiler|Visual Studio 2015
 
 Library|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)|Remarks
 ---|---|---|---|---
-[jsoncons](https://github.com/danielaparker/jsoncons)|6.021|1.395|1212|
-[rapidjson](https://github.com/miloyip/rapidjson)|2.359|0.777|845|
-[nlohmann](https://github.com/nlohmann/json)|21.961|9.482|2796|
-[jsoncpp](https://github.com/open-source-parsers/jsoncpp)|14.502|7.36|3353|
-[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)|111.186|8.701|1197|Boost spirit parsing is slow
-[gason](https://github.com/vivkin/gason)|1.578|15.814|1133|No serialization function, using sample pretty-print code
+[jsoncons](https://github.com/danielaparker/jsoncons)|5.12|1.599|1181|
+[rapidjson](https://github.com/miloyip/rapidjson)|2.9|0.962|846|
+[nlohmann](https://github.com/nlohmann/json)|23.384|9.824|2796|
+[jsoncpp](https://github.com/open-source-parsers/jsoncpp)|14.6|7.458|3355|
+[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)|118.78|9.209|2203|Boost spirit parsing is slow
+[gason](https://github.com/vivkin/gason)|1.646|16.491|1130|No serialization function, using sample pretty-print code
 
 ## API Comparison
 
@@ -32,4 +32,3 @@ Library|Code|Result
 [nlohmann](https://github.com/nlohmann/json)|`json val;` `std::cout << val;`|null
 [json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)|`Value val;` `write_stream(val, std::cout);`|null
 [jsoncpp](https://github.com/open-source-parsers/jsoncpp)|`Value val;` `std::cout << val;`|null
-[gason](https://github.com/vivkin/gason)|`JsonValue val;` `dumpValue(val);`|null

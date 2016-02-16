@@ -81,18 +81,27 @@ measurements benchmark_rapidjson(const char *input_filename,
     return results;
 }
 
+void print(FILE* fp, const Value& val)
+{
+    char buffer[1000];
+    FileWriteStream fws(fp, buffer, sizeof(buffer));
+    Writer<FileWriteStream> writer(fws);
+    val.Accept(writer);
+    fws.Flush();
+}
+
 features features_rapidjson()
 {
     std::cout << "rapidjson" << std::endl;
 
     // Default 
-    Value val;
+    //Value val;
 
-    char buffer[255];
-    FileWriteStream os(stdout, buffer, sizeof(buffer));
-    Writer<FileWriteStream> writer(os);
-    val.Accept(writer);
-    os.Flush();
+    //char buffer[255];
+    //FileWriteStream os(stdout, buffer, sizeof(buffer));
+    //Writer<FileWriteStream> writer(os);
+    //val.Accept(writer);
+    //os.Flush();
 
 
     //std::cout << "type" << root.IsNull() << std::endl;
@@ -106,12 +115,22 @@ features features_rapidjson()
 
     //std::cout << "copy: " << root << "," << a << std::endl;
 
-    Value b(123);
-    Value c(456);
+    Value a(true);
+    Value b;
+    b = a;
+    //c = false;
 
-    //std::cout << c << std::endl;
+    std::cout << "a = ";
+    print(stdout, a);
+    std::cout << std::endl;
+    std::cout << "b = ";
+    print(stdout, b);
+    std::cout << std::endl;
 
-    c = b;
+    const char* json = "{\"file-name\":\"README.md\",\"line-count\":473}";
+    Document d;
+    d.Parse(json);
+    print(stdout, d);
 
     features results;
     results.library_name = library_name;

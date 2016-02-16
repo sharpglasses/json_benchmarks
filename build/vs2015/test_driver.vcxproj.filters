@@ -36,6 +36,9 @@
     <ClCompile Include="..\..\src\data_generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\tests\gason_dump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\tests\benchmark_gason.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

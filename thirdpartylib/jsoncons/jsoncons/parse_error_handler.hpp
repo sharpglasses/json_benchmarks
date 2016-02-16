@@ -79,11 +79,12 @@ public:
         return do_current_char();
     }
 
-    // Deprecated
+#if !defined(JSONCONS_NO_DEPRECATED)
     CharT last_char() const
     {
         return do_current_char();
     }
+#endif
 
 private:
     virtual size_t do_line_number() const = 0;
@@ -131,6 +132,7 @@ private:
     virtual void do_fatal_error(std::error_code,
                                 const basic_parsing_context<CharT>& context) throw (parse_exception)
     {
+        (void)context;
     }
 };
 
@@ -147,6 +149,7 @@ private:
     virtual void do_warning(std::error_code,
                             const basic_parsing_context<CharT>& context) throw (parse_exception) 
     {
+        (void)context;
     }
 
     virtual void do_error(std::error_code ec,

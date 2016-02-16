@@ -155,6 +155,7 @@
     <ClCompile Include="..\..\src\tests\benchmark_json_spirit.cpp" />
     <ClCompile Include="..\..\src\tests\benchmark_nlohmann.cpp" />
     <ClCompile Include="..\..\src\tests\benchmark_rapidjson.cpp" />
+    <ClCompile Include="..\..\src\tests\gason_dump.cpp" />
     <ClCompile Include="..\..\src\test_driver.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

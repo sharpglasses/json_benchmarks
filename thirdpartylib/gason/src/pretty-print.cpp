@@ -10,87 +10,138 @@
 
 const int SHIFT_WIDTH = 4;
 
-void dumpString(FILE *fp, const char *s) {
-    fputc('"', fp);
+void dumpString(const char *s) {
+    fputc('"', stdout);
     while (*s) {
         int c = *s++;
         switch (c) {
         case '\b':
-            fprintf(fp, "\\b");
+            fprintf(stdout, "\\b");
             break;
         case '\f':
-            fprintf(fp, "\\f");
+            fprintf(stdout, "\\f");
             break;
         case '\n':
-            fprintf(fp, "\\n");
+            fprintf(stdout, "\\n");
             break;
         case '\r':
-            fprintf(fp, "\\r");
+            fprintf(stdout, "\\r");
             break;
         case '\t':
-            fprintf(fp, "\\t");
+            fprintf(stdout, "\\t");
             break;
         case '\\':
-            fprintf(fp, "\\\\");
+            fprintf(stdout, "\\\\");
             break;
         case '"':
-            fprintf(fp, "\\\"");
+            fprintf(stdout, "\\\"");
             break;
         default:
-            fputc(c, fp);
+            fputc(c, stdout);
         }
     }
-    fprintf(fp, "%s\"", s);
+    fprintf(stdout, "%s\"", s);
 }
 
-void dumpValue(FILE *fp, JsonValue o, int indent = 0) {
+void dumpValue(JsonValue o, int indent = 0) {
     switch (o.getTag()) {
     case JSON_NUMBER:
-        fprintf(fp, "%f", o.toNumber());
+        fprintf(stdout, "%f", o.toNumber());
         break;
     case JSON_STRING:
-        dumpString(fp,o.toString());
+        dumpString(o.toString());
         break;
     case JSON_ARRAY:
         // It is not necessary to use o.toNode() to check if an array or object
         // is empty before iterating over its members, we do it here to allow
         // nicer pretty printing.
         if (!o.toNode()) {
-            fprintf(fp, "[]");
+            fprintf(stdout, "[]");
             break;
         }
-        fprintf(fp, "[\n");
+        fprintf(stdout, "[\n");
         for (auto i : o) {
-            fprintf(fp, "%*s", indent + SHIFT_WIDTH, "");
-            dumpValue(fp,i->value, indent + SHIFT_WIDTH);
-            fprintf(fp, i->next ? ",\n" : "\n");
+            fprintf(stdout, "%*s", indent + SHIFT_WIDTH, "");
+            dumpValue(i->value, indent + SHIFT_WIDTH);
+            fprintf(stdout, i->next ? ",\n" : "\n");
         }
-        fprintf(fp, "%*s]", indent, "");
+        fprintf(stdout, "%*s]", indent, "");
         break;
     case JSON_OBJECT:
         if (!o.toNode()) {
-            fprintf(fp, "{}");
+            fprintf(stdout, "{}");
             break;
         }
-        fprintf(fp, "{\n");
+        fprintf(stdout, "{\n");
         for (auto i : o) {
-            fprintf(fp, "%*s", indent + SHIFT_WIDTH, "");
-            dumpString(fp,i->key);
-            fprintf(fp, ": ");
-            dumpValue(fp,i->value, indent + SHIFT_WIDTH);
-            fprintf(fp, i->next ? ",\n" : "\n");
+            fprintf(stdout, "%*s", indent + SHIFT_WIDTH, "");
+            dumpString(i->key);
+            fprintf(stdout, ": ");
+            dumpValue(i->value, indent + SHIFT_WIDTH);
+            fprintf(stdout, i->next ? ",\n" : "\n");
         }
-        fprintf(fp, "%*s}", indent, "");
+        fprintf(stdout, "%*s}", indent, "");
         break;
     case JSON_TRUE:
-        fprintf(fp, "true");
+        fprintf(stdout, "true");
         break;
     case JSON_FALSE:
-        fprintf(fp, "false");
+        fprintf(stdout, "false");
         break;
     case JSON_NULL:
-        fprintf(fp, "null");
+        fprintf(stdout, "null");
         break;
     }
 }
 
+void printError(const char *filename, int status, char *endptr, char *source, size_t size) {
+    char *s = endptr;
+    while (s != source && *s != '\n')
+        --s;
+    if (s != endptr && s != source)
+        ++s;
+
+    int lineno = 0;
+    for (char *it = s; it != source; --it) {
+        if (*it == '\n') {
+            ++lineno;
+        }
+    }
+
+    int column = (int)(endptr - s);
+
+    fprintf(stderr, "%s:%d:%d: %s\n", filename, lineno + 1, column + 1, jsonStrError(status));
+
+    while (s != source + size && *s != '\n') {
+        int c = *s++;
+        switch (c) {
+        case '\b':
+            fprintf(stderr, "\\b");
+            column += 1;
+            break;
+        case '\f':
+            fprintf(stderr, "\\f");
+            column += 1;
+            break;
+        case '\n':
+            fprintf(stderr, "\\n");
+            column += 1;
+            break;
+        case '\r':
+            fprintf(stderr, "\\r");
+            column += 1;
+            break;
+        case '\t':
+            fprintf(stderr, "%*s", SHIFT_WIDTH, "");
+            column += SHIFT_WIDTH - 1;
+            break;
+        case '\0':
+            fprintf(stderr, "\"");
+            break;
+        default:
+            fputc(c, stderr);
+        }
+    }
+
+    fprintf(stderr, "\n%*s\n", column + 1, "^");
+}

@@ -18,7 +18,7 @@ using namespace json_benchmarks;
 
 const std::string library_name = "[gason](https://github.com/vivkin/gason)";
 
-void dumpValue(FILE *fp, JsonValue o, int indent = 0);
+void dumpValue(JsonValue o, int indent = 0);
 
 measurements benchmark_gason(const char *input_filename,
                              const char* output_filename)
@@ -63,13 +63,15 @@ measurements benchmark_gason(const char *input_filename,
         end_memory_used =  memory_measurer::virtual_memory_currently_used_by_current_process();
         {
             auto start = high_resolution_clock::now();
-            FILE *fp = fopen(output_filename, "w");
-            if (!fp) {
-                perror(output_filename);
-                exit(EXIT_FAILURE);
-            }
-            dumpValue(fp,root);
-            fclose(fp);
+            //FILE *fp = fopen(output_filename, "w");
+            //if (!fp) {
+            //    perror(output_filename);
+            //    exit(EXIT_FAILURE);
+            //}
+            freopen(output_filename, "w", stdout);
+            dumpValue(root);
+            fclose(stdout);
+            freopen("CONOUT$", "w", stdout);
             auto end = high_resolution_clock::now();
             time_to_write = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         }
@@ -87,10 +89,16 @@ measurements benchmark_gason(const char *input_filename,
 
 features features_gason()
 {
-    //std::cout << "gason" << std::endl;
-    //JsonValue val;
-    //dumpValue(stdout,val);
-
+    std::cout << "gason" << std::endl;
+    JsonValue a(true);
+    JsonValue b = a;
+    dumpValue(a);
+    dumpValue(b);
+    JsonValue c;
+    c = b;
+    dumpValue(b);
+    dumpValue(c);
+    std::cout << std::endl;
     features results;
     results.library_name = library_name;
     results.default_construction = "`JsonValue val;` `dumpValue(val);`";

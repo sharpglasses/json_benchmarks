@@ -84,9 +84,9 @@ private:
         writer_->value(value);
     }
 
-    void do_double_value(double value, const basic_parsing_context<CharT>& context) override
+    void do_double_value(double value, uint8_t precision, const basic_parsing_context<CharT>& context) override
     {
-        writer_->value(value);
+        writer_->value(value, precision);
     }
 
     void do_bool_value(bool value, const basic_parsing_context<CharT>& context) override
@@ -137,11 +137,12 @@ public:
         return *handler_;
     }
 
-    // Deprecated
+#if !defined(JSONCONS_NO_DEPRECATED)
     basic_json_input_handler<CharT>& parent()
     {
         return *handler_;
     }
+#endif
 
 private:
     void do_begin_json() override
@@ -184,9 +185,9 @@ private:
         handler_->value(value,length,context);
     }
 
-    void do_double_value(double value, const basic_parsing_context<CharT>& context) override
+    void do_double_value(double value, uint8_t precision, const basic_parsing_context<CharT>& context) override
     {
-        handler_->value(value,context);
+        handler_->value(value,precision,context);
     }
 
     void do_integer_value(int64_t value, const basic_parsing_context<CharT>& context) override

@@ -19,6 +19,9 @@
 #include <cstdarg>
 #include <limits> // std::numeric_limits
 
+// Uncomment the following line to suppress deprecated names (recommended for new code)
+// #define JSONCONS_NO_DEPRECATED
+
 #define JSONCONS_NO_MACRO_EXP
 
 namespace jsoncons
@@ -45,8 +48,9 @@ namespace jsoncons
 #endif
 
 #if defined(_MSC_VER)
+#define JSONCONS_HAS_FOPEN_S
+#define JSONCONS_HAS_WCSTOMBS_S
 #if _MSC_VER < 1800 // VS2013
-#define JSONCONS_NO_CXX11_ALLOCATOR
 #define JSONCONS_NO_RAW_STRING_LITERALS
 #define JSONCONS_NO_FOR_RANGE
 #endif

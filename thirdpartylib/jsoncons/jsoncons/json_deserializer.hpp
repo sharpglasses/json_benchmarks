@@ -1,11 +1,11 @@
-// Copyright 2013 Daniel Parker
+// Copyright 2013-2016 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 // See https://github.com/danielaparker/jsoncons for latest version
 
-#ifndef JSONCONS_JSON_DESERIALIZER_HPP
-#define JSONCONS_JSON_DESERIALIZER_HPP
+#ifndef JSONCONS_JSON_DESERIALIZER2_HPP
+#define JSONCONS_JSON_DESERIALIZER2_HPP
 
 #include <string>
 #include <sstream>
@@ -21,30 +21,48 @@ namespace jsoncons {
 template <class JsonT>
 class basic_json_deserializer : public basic_json_input_handler<typename JsonT::char_type>
 {
-    static const int default_depth = 100;
+    static const int default_stack_size = 1000;
 
     typedef typename JsonT::char_type char_type;
     typedef typename JsonT::member_type member_type;
+    typedef typename JsonT::string_type string_type;
+    typedef typename string_type::allocator_type string_allocator_type;
     typedef typename JsonT::allocator_type allocator_type;
     typedef typename JsonT::array array;
+    typedef typename array::allocator_type array_allocator_type;
     typedef typename JsonT::object object;
-    typedef typename array::value_type value_type;
+    typedef typename object::allocator_type object_allocator_type;
+    typedef typename JsonT::value_type value_type;
 
     struct stack_item
     {
-        member_type member;
+        string_type name;
         JsonT value;
     };
 
+    string_allocator_type string_allocator_;
+    object_allocator_type object_allocator_;
+    array_allocator_type array_allocator_;
+
+    JsonT result_;
+    size_t top_;
+    std::vector<stack_item> stack_;
+    std::vector<size_t> stack2_;
+    bool is_valid_;
+
 public:
-    basic_json_deserializer(const allocator_type allocator = allocator_type())
-        : result_(allocator),
-          top_(-1),
-          stack_(default_depth),
-          depth_(default_depth),
+    basic_json_deserializer(const string_allocator_type& string_allocator = string_allocator_type(),
+                            const allocator_type& allocator = allocator_type())
+        : string_allocator_(string_allocator),
+          object_allocator_(allocator),
+          array_allocator_(allocator),
+          top_(0),
+          stack_(default_stack_size),
+          stack2_(),
           is_valid_(true) // initial json value is an empty object
 
     {
+        stack2_.reserve(100);
     }
 
     bool is_valid() const
@@ -58,223 +76,197 @@ public:
         return std::move(result_);
     }
 
-//  Deprecated
+#if !defined(JSONCONS_NO_DEPRECATED)
     JsonT& root()
     {
         return result_;
     }
+#endif
 
 private:
-    JsonT result_;
+
+    void push_initial()
+    {
+        top_ = 0;
+        if (top_ >= stack_.size())
+        {
+            stack_.resize(top_*2);
+        }
+    }
+
+    void pop_initial()
+    {
+        JSONCONS_ASSERT(top_ == 1);
+        result_.swap(stack_[0].value);
+        --top_;
+    }
 
     void push_object()
     {
-        ++top_;
-        if (top_ >= depth_)
+        stack2_.push_back(top_);
+        stack_[top_].value = object(object_allocator_);
+        if (++top_ >= stack_.size())
         {
-            depth_ *= 2;
-            stack_.resize(depth_);
+            stack_.resize(top_*2);
         }
-        stack_[top_].value = object(result_.get_allocator());
-    }
-
-    void push_array()
-    {
-        ++top_;
-        if (top_ >= depth_)
-        {
-            depth_ *= 2;
-            stack_.resize(depth_);
-        }
-        stack_[top_].value = array(result_.get_allocator());
     }
 
     void pop_object()
     {
-        JSONCONS_ASSERT(top_ >= 0);
-        --top_;
+        stack2_.pop_back();
+        JSONCONS_ASSERT(top_ > 0);
+    }
+
+    void push_array()
+    {
+        stack2_.push_back(top_);
+        stack_[top_].value = array(array_allocator_);
+        if (++top_ >= stack_.size())
+        {
+            stack_.resize(top_*2);
+        }
     }
 
     void pop_array()
     {
-        JSONCONS_ASSERT(top_ >= 0);
-        --top_;
+        stack2_.pop_back();
+        JSONCONS_ASSERT(top_ > 0);
     }
 
     void do_begin_json() override
     {
         is_valid_ = false;
+        push_initial();
     }
 
     void do_end_json() override
     {
         is_valid_ = true;
+        pop_initial();
     }
 
-    void do_begin_object(const basic_parsing_context<char_type>& context) override
+    void do_begin_object(const basic_parsing_context<char_type>&) override
     {
         push_object();
     }
 
     void do_end_object(const basic_parsing_context<char_type>&) override
     {
-        stack_[top_].value.object_value().sort_members();
-        if (top_ > 0)
+        JSONCONS_ASSERT(stack2_.size() > 0);
+        if (stack_[stack2_.back()].value.is_object())
         {
-            if (stack_[top_-1].value.is_object())
+            size_t count = top_ - (stack2_.back() + 1);
+            stack_[stack2_.back()].value.reserve(count);
+            for (size_t i = 0; i < count; ++i)
             {
-                stack_[top_-1].member.value(std::move(stack_[top_].value));
-                stack_[top_-1].value.object_value().bulk_insert(std::move(stack_[top_-1].member));
+                stack_[stack2_.back()].value.object_value().bulk_insert(member_type(std::move(stack_[stack2_.back()+1+i].name),std::move(stack_[stack2_.back()+1+i].value)));
             }
-            else
-            {
-                stack_[top_-1].value.array_value().push_back(std::move(stack_[top_].value));
-            }
+            stack_[stack2_.back()].value.object_value().end_bulk_insert();
+            top_ -= count;
         }
         else
         {
-            result_.swap(stack_[0].value);
+            size_t count = top_ - (stack2_.back() + 1);
+            stack_[stack2_.back()].value.resize(count);
+            for (size_t i = 0; i < count; ++i)
+            {
+                stack_[stack2_.back()].value[i] = std::move(stack_[stack2_.back()+1+i].value);
+            }
+            top_ -= count;
         }
         pop_object();
     }
 
-    void do_begin_array(const basic_parsing_context<char_type>& context) override
+    void do_begin_array(const basic_parsing_context<char_type>&) override
     {
         push_array();
     }
 
     void do_end_array(const basic_parsing_context<char_type>&) override
     {
-        if (top_ > 0)
+        JSONCONS_ASSERT(stack2_.size() > 0);
+        if (stack_[stack2_.back()].value.is_object())
         {
-            if (stack_[top_-1].value.is_object())
+            size_t count = top_ - (stack2_.back() + 1);
+            stack_[stack2_.back()].value.reserve(count);
+            for (size_t i = 0; i < count; ++i)
             {
-                stack_[top_-1].member.value(std::move(stack_[top_].value));
-                stack_[top_-1].value.object_value().bulk_insert(std::move(stack_[top_-1].member));
+                stack_[stack2_.back()].value.object_value().bulk_insert(member_type(std::move(stack_[stack2_.back()+1+i].name),std::move(stack_[stack2_.back()+1+i].value)));
             }
-            else
-            {
-                stack_[top_-1].value.array_value().push_back(std::move(stack_[top_].value));
-            }
+            stack_[stack2_.back()].value.object_value().end_bulk_insert();
+            top_ -= count;
         }
         else
         {
-            result_.swap(stack_[0].value);
+            size_t count = top_ - (stack2_.back() + 1);
+            stack_[stack2_.back()].value.resize(count);
+            for (size_t i = 0; i < count; ++i)
+            {
+                stack_[stack2_.back()].value[i] = std::move(stack_[stack2_.back()+1+i].value);
+            }
+            top_ -= count;
         }
         pop_array();
     }
 
     void do_name(const char_type* p, size_t length, const basic_parsing_context<char_type>&) override
     {
-        stack_[top_].member = member_type(p,length,result_.get_allocator());
+        stack_[top_].name = string_type(p,length,string_allocator_);
     }
 
     void do_string_value(const char_type* p, size_t length, const basic_parsing_context<char_type>&) override
     {
-        if (top_ == -1)
+        stack_[top_].value = JsonT(p,length,string_allocator_);
+        if (++top_ >= stack_.size())
         {
-            result_.assign_string(p,length);
-        }
-        else if (stack_[top_].value.is_object())
-        {
-            stack_[top_].member.value(value_type(p,length,result_.get_allocator()));
-            stack_[top_].value.object_value().bulk_insert(std::move(stack_[top_].member));
-        } 
-        else
-        {
-            stack_[top_].value.array_value().push_back(JsonT(p,length,result_.get_allocator()));
+            stack_.resize(top_*2);
         }
     }
 
     void do_integer_value(int64_t value, const basic_parsing_context<char_type>&) override
     {
-        if (top_ == -1)
+        stack_[top_].value = value;
+        if (++top_ >= stack_.size())
         {
-            result_.assign_longlong(value);
-        }
-        else if (stack_[top_].value.is_object())
-        {
-            stack_[top_].member.value(value_type(value,result_.get_allocator()));
-            stack_[top_].value.object_value().bulk_insert(std::move(stack_[top_].member));
-        } 
-        else
-        {
-            stack_[top_].value.array_value().push_back(value_type(value,result_.get_allocator()));
+            stack_.resize(top_*2);
         }
     }
 
     void do_uinteger_value(uint64_t value, const basic_parsing_context<char_type>&) override
     {
-        if (top_ == -1)
+        stack_[top_].value = value;
+        if (++top_ >= stack_.size())
         {
-            result_.assign_ulonglong(value);
-        }
-        else if (stack_[top_].value.is_object())
-        {
-            stack_[top_].member.value(value_type(value,result_.get_allocator()));
-            stack_[top_].value.object_value().bulk_insert(std::move(stack_[top_].member));
-        } 
-        else
-        {
-            stack_[top_].value.array_value().push_back(value_type(value,result_.get_allocator()));
+            stack_.resize(top_*2);
         }
     }
 
-    void do_double_value(double value, const basic_parsing_context<char_type>&) override
+    void do_double_value(double value, uint8_t precision, const basic_parsing_context<char_type>&) override
     {
-        if (top_ == -1)
+        stack_[top_].value = value_type(value,precision);
+        if (++top_ >= stack_.size())
         {
-            result_.assign_double(value);
-        }
-        else if (stack_[top_].value.is_object())
-        {
-            stack_[top_].member.value(value_type(value,result_.get_allocator()));
-            stack_[top_].value.object_value().bulk_insert(std::move(stack_[top_].member));
-        } 
-        else
-        {
-            stack_[top_].value.array_value().push_back(value_type(value,result_.get_allocator()));
+            stack_.resize(top_*2);
         }
     }
 
     void do_bool_value(bool value, const basic_parsing_context<char_type>&) override
     {
-        if (top_ == -1)
+        stack_[top_].value = value;
+        if (++top_ >= stack_.size())
         {
-            result_.assign_bool(value);
-        }
-        else if (stack_[top_].value.is_object())
-        {
-            stack_[top_].member.value(value_type(value,result_.get_allocator()));
-            stack_[top_].value.object_value().bulk_insert(std::move(stack_[top_].member));
-        } 
-        else
-        {
-            stack_[top_].value.array_value().push_back(value_type(value,result_.get_allocator()));
+            stack_.resize(top_*2);
         }
     }
 
     void do_null_value(const basic_parsing_context<char_type>&) override
     {
-        if (top_ == -1)
+        stack_[top_].value = null_type();
+        if (++top_ >= stack_.size())
         {
-            result_.assign_null();
-        }
-        else if (stack_[top_].value.is_object())
-        {
-            stack_[top_].member.value(value_type(null_type(),result_.get_allocator()));
-            stack_[top_].value.object_value().bulk_insert(std::move(stack_[top_].member));
-        } 
-        else
-        {
-            stack_[top_].value.array_value().push_back(value_type(null_type(),result_.get_allocator()));
+            stack_.resize(top_*2);
         }
     }
-
-    int top_;
-    std::vector<stack_item> stack_;
-    int depth_;
-    bool is_valid_;
 };
 
 }
