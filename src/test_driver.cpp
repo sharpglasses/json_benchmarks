@@ -58,8 +58,8 @@ int main()
 
         os << std::endl;
  
-        os << "Library|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)|Remarks" << std::endl;
-        os << "---|---|---|---|---" << std::endl;
+        os << "Library|Version|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)|Remarks" << std::endl;
+        os << "---|---|---|---|---|---" << std::endl;
 
         measurements results = measure_jsoncons("data/input/persons.json", "data/output/persons-jsoncons.json");
         output_measurements(os,results);

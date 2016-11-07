@@ -14,8 +14,8 @@ Computer|Dell Mobile Precision 2015, Intel Xeon E3-1535M v5, 32GB memory, 1TB SS
 Operating system|Windows 2010
 Compiler|Visual Studio 2015
 
-Library|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)|Remarks
----|---|---|---|---
+Library|Version|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)|Remarks
+---|---|---|---|---|---
 [jsoncons](https://github.com/danielaparker/jsoncons)|0.99.4|5.641|1.414|1088|
 [rapidjson](https://github.com/miloyip/rapidjson)|2.0.7|2.331|0.839|576|
 [nlohmann](https://github.com/nlohmann/json)|2.0.7|15.806|10.875|2742|
