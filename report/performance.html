@@ -481,7 +481,7 @@ vertical-align:1px;
 <tbody>
 <tr>
 <td>data/input/persons.json</td>
-<td>564.6</td>
+<td>537.6</td>
 <td>Text,integers</td>
 </tr>
 </tbody>
@@ -523,103 +523,45 @@ vertical-align:1px;
 <tbody>
 <tr>
 <td><a href="https://github.com/danielaparker/jsoncons">jsoncons</a></td>
-<td>6.021</td>
-<td>1.395</td>
-<td>1212</td>
+<td>5.796</td>
+<td>1.374</td>
+<td>1088</td>
 <td></td>
 </tr>
 <tr>
 <td><a href="https://github.com/miloyip/rapidjson">rapidjson</a></td>
-<td>2.359</td>
-<td>0.777</td>
-<td>845</td>
+<td>2.472</td>
+<td>0.904</td>
+<td>576</td>
 <td></td>
 </tr>
 <tr>
 <td><a href="https://github.com/nlohmann/json">nlohmann</a></td>
-<td>21.961</td>
-<td>9.482</td>
-<td>2796</td>
+<td>16.458</td>
+<td>11.47</td>
+<td>2742</td>
 <td></td>
 </tr>
 <tr>
 <td><a href="https://github.com/open-source-parsers/jsoncpp">jsoncpp</a></td>
-<td>14.502</td>
-<td>7.36</td>
-<td>3353</td>
+<td>16.158</td>
+<td>8.816</td>
+<td>3345</td>
 <td></td>
 </tr>
 <tr>
 <td><a href="http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented">json_spirit</a></td>
-<td>111.186</td>
-<td>8.701</td>
-<td>1197</td>
+<td>118.362</td>
+<td>10.382</td>
+<td>2937</td>
 <td>Boost spirit parsing is slow</td>
 </tr>
 <tr>
 <td><a href="https://github.com/vivkin/gason">gason</a></td>
-<td>1.578</td>
-<td>15.814</td>
-<td>1133</td>
+<td>1.587</td>
+<td>17.67</td>
+<td>538</td>
 <td>No serialization function, using sample pretty-print code</td>
-</tr>
-</tbody>
-</table>
-
-<h2>API Comparison</h2>
-
-<h3>Default value</h3>
-
-<table>
-<thead>
-<tr>
-<th>Library</th>
-<th>Code</th>
-<th>Result</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="https://github.com/danielaparker/jsoncons">jsoncons</a></td>
-<td>
-<code>json val;</code> <code>std::cout &lt;&lt; val;</code>
-</td>
-<td>{}</td>
-</tr>
-<tr>
-<td><a href="https://github.com/miloyip/rapidjson">rapidjson</a></td>
-<td>
-<code>Value val;</code><code>char buffer[255];</code> <code>FileWriteStream os(stdout, buffer, sizeof(buffer));</code> <code>Writer&lt;FileWriteStream&gt; writer(os);</code> <code>val.Accept(writer);</code> <code>os.Flush();</code>
-</td>
-<td>null</td>
-</tr>
-<tr>
-<td><a href="https://github.com/nlohmann/json">nlohmann</a></td>
-<td>
-<code>json val;</code> <code>std::cout &lt;&lt; val;</code>
-</td>
-<td>null</td>
-</tr>
-<tr>
-<td><a href="http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented">json_spirit</a></td>
-<td>
-<code>Value val;</code> <code>write_stream(val, std::cout);</code>
-</td>
-<td>null</td>
-</tr>
-<tr>
-<td><a href="https://github.com/open-source-parsers/jsoncpp">jsoncpp</a></td>
-<td>
-<code>Value val;</code> <code>std::cout &lt;&lt; val;</code>
-</td>
-<td>null</td>
-</tr>
-<tr>
-<td><a href="https://github.com/vivkin/gason">gason</a></td>
-<td>
-<code>JsonValue val;</code> <code>dumpValue(val);</code>
-</td>
-<td>null</td>
 </tr>
 </tbody>
 </table>

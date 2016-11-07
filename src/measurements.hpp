@@ -10,8 +10,34 @@
 
 #include <chrono>
 #include <string>
+#include <iostream>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 namespace json_benchmarks {
+
+template <class F>
+void json_file_finder(const char* dir_name, F f)
+{
+    boost::filesystem::path p{ dir_name };
+
+    if (exists(p) && is_directory(p))
+    {
+        boost::filesystem::directory_iterator end_iter;
+        for (boost::filesystem::directory_iterator dir_itr(p);
+            dir_itr != end_iter;
+            ++dir_itr)
+        {
+            if (is_regular_file(dir_itr->status()))
+            {
+                if (dir_itr->path().extension() == ".json")
+                {
+                    f(dir_itr->path().string());
+                }
+            }
+        }
+    }
+}
 
 struct measurements
 {
@@ -20,7 +46,6 @@ struct measurements
     size_t time_to_read;
     size_t time_to_write;
     std::string remarks;
-
 };
 
 }
