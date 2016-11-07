@@ -16,10 +16,10 @@ Compiler|Visual Studio 2015
 
 Library|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)|Remarks
 ---|---|---|---|---
-[jsoncons](https://github.com/danielaparker/jsoncons)|5.796|1.374|1088|
-[rapidjson](https://github.com/miloyip/rapidjson)|2.472|0.904|576|
-[nlohmann](https://github.com/nlohmann/json)|16.458|11.47|2742|
-[jsoncpp](https://github.com/open-source-parsers/jsoncpp)|16.158|8.816|3345|
-[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)|118.362|10.382|2937|Boost spirit parsing is slow
-[gason](https://github.com/vivkin/gason)|1.587|17.67|538|No serialization function, using sample pretty-print code
+[jsoncons](https://github.com/danielaparker/jsoncons)|0.99.4|5.641|1.414|1088|
+[rapidjson](https://github.com/miloyip/rapidjson)|2.0.7|2.331|0.839|576|
+[nlohmann](https://github.com/nlohmann/json)|2.0.7|15.806|10.875|2742|
+[jsoncpp](https://github.com/open-source-parsers/jsoncpp)|1.7.7|14.857|8.339|3345|
+[json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)|4.08|111.557|10.159|2927|Boost spirit parsing is slow
+[gason](https://github.com/vivkin/gason)|master 20161107|1.631|16.482|538|No serialization function, using sample pretty-print code
 

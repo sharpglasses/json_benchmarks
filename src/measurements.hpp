@@ -42,6 +42,7 @@ void json_file_finder(const char* dir_name, F f)
 struct measurements
 {
     std::string library_name;
+    std::string version;
     size_t memory_used;
     size_t time_to_read;
     size_t time_to_write;

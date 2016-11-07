@@ -17,6 +17,7 @@ measurements measure_gason(const char *input_filename, const char *output_filena
 void output_measurements(std::ostream& os, measurements const & results)
 {
     os << results.library_name
+       << "|" << results.version
        << "|" << (results.time_to_read/1000.0) 
        << "|" << (results.time_to_write/1000.0) 
        << "|" << (results.memory_used)
