@@ -32,7 +32,7 @@ void json_file_finder(const char* dir_name, F f)
             {
                 if (dir_itr->path().extension() == ".json")
                 {
-                    f(dir_itr->path().string());
+                    f(dir_itr->path());
                 }
             }
         }
@@ -47,6 +47,28 @@ struct measurements
     size_t time_to_read;
     size_t time_to_write;
     std::string remarks;
+};
+
+enum class test_results
+{
+    expected_result,
+    expected_success_parsing_failed,
+    expected_failure_parsing_succeeded,
+    result_undefined_parsing_succeeded,
+    result_undefined_parsing_failed,
+    process_stopped
+};
+
+struct test_suite_file
+{
+    boost::filesystem::path path;
+    char type; 
+    std::string text;
+};
+
+struct test_suite_results
+{
+    test_results result;
 };
 
 }

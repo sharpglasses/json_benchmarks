@@ -1,6 +1,3 @@
-
-//#include "json_spirit/json_spirit_reader.h"
-//#include "json_spirit/json_spirit_writer.h"
 #include "json_spirit/json_spirit_reader_template.h"
 #include "json_spirit/json_spirit_writer_template.h"
 #include <chrono>
@@ -70,6 +67,83 @@ measurements measure_json_spirit(const char *input_filename,
     results.time_to_read = time_to_read;
     results.time_to_write = time_to_write;
     results.remarks = "Boost spirit parsing is slow";
+    return results;
+}
+
+std::vector<test_suite_results> JsonTestSuite_json_spirit(std::vector<test_suite_file>& pathnames)
+{
+    std::vector<test_suite_results> results;
+    for (auto& file : pathnames)
+    {
+        std::string command = "C:\\Sites\\json_benchmarks\\build\\vs2015\\x64\\Release\\json_spirit_parser.exe ";
+        command = command + file.path.string();
+        int result = std::system(command.c_str());
+
+        if (file.type == 'y')
+        {
+            if (result == 0)
+            {
+                results.push_back(
+                    test_suite_results{test_results::expected_result}
+                );
+            }
+            else if (result == 1)
+            {
+                results.push_back(
+                    test_suite_results{test_results::expected_success_parsing_failed}
+                );
+            }
+            else
+            {
+                results.push_back(
+                    test_suite_results{test_results::process_stopped}
+                );
+            }
+        }
+        else if (file.type == 'n')
+        {
+            if (result == 0)
+            {
+                results.push_back(
+                    test_suite_results{test_results::expected_failure_parsing_succeeded}
+                );
+            }
+            else if (result == 1)
+            {
+                results.push_back(
+                    test_suite_results{test_results::expected_result}
+                );
+            }
+            else
+            {
+                results.push_back(
+                    test_suite_results{test_results::process_stopped}
+                );
+            }
+        }
+        else if (file.type == 'i')
+        {
+            if (result == 0)
+            {
+                results.push_back(
+                    test_suite_results{test_results::result_undefined_parsing_succeeded}
+                );
+            }
+            else if (result == 1)
+            {
+                results.push_back(
+                    test_suite_results{test_results::result_undefined_parsing_failed}
+                );
+            }
+            else
+            {
+                results.push_back(
+                    test_suite_results{test_results::process_stopped}
+                );
+            }
+        }
+    }
+
     return results;
 }
 

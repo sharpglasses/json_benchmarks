@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <vector>
+#include <boost/filesystem.hpp>
 #include "gason.h"
 #include "../measurements.hpp"
 #include "../memory_measurer.hpp"
@@ -87,6 +88,68 @@ measurements measure_gason(const char *input_filename,
     return results;
 }
 
+std::vector<test_suite_results> JsonTestSuite_gason(std::vector<test_suite_file>& pathnames)
+{
+    std::vector<test_suite_results> results;
+    for (auto& file : pathnames)
+    {
+        JsonValue root;
+        JsonAllocator allocator;
+        if (file.type == 'y')
+        {
+            char *endptr;
+            int status = jsonParse(&(file.text[0]), &endptr, &root, allocator);
+            if (status == JSON_OK) 
+            {
+                results.push_back(
+                    test_suite_results{test_results::expected_result}
+                );
+            }
+            else
+            {
+                results.push_back(
+                    test_suite_results{test_results::expected_success_parsing_failed}
+                );
+            }
+        }
+        else if (file.type == 'n')
+        {
+            char *endptr;
+            int status = jsonParse(&(file.text[0]), &endptr, &root, allocator);
+            if (status == JSON_OK) 
+            {
+                results.push_back(
+                    test_suite_results{test_results::expected_failure_parsing_succeeded}
+                );
+            }
+            else
+            {
+                results.push_back(
+                    test_suite_results{test_results::expected_result}
+                );
+            }
+        }
+        else if (file.type == 'i')
+        {
+            char *endptr;
+            int status = jsonParse(&(file.text[0]), &endptr, &root, allocator);
+            if (status == JSON_OK) 
+            {
+                results.push_back(
+                    test_suite_results{test_results::result_undefined_parsing_succeeded}
+                );
+            }
+            else
+            {
+                results.push_back(
+                    test_suite_results{test_results::result_undefined_parsing_failed}
+                );
+            }
+        }
+    }
+
+    return results;
+}
 
 
 

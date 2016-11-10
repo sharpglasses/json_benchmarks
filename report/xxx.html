@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Parsing Tests</title>
+    <style>
+        th.rotate {
+          /* Something you can count on */
+          height: 140px;
+          white-space: nowrap;
+        }
+
+        th.rotate > div {
+          transform: 
+            /* Magic Numbers */
+            translate(25px, 51px)
+            /* 45 is really 360 - 45 */
+            rotate(315deg);
+          width: 30px;
+        }
+        th.rotate > div > span {
+          border-bottom: 1px solid #ccc;
+          padding: 5px 10px;
+    }
+    </style>
+  </head>
+  <body>
+    <h2>JSON Parsing Tests</h2>
+    <table>
+        <tr><td bgcolor="LightGreen"><strong>Expected result</strong></td></tr> 
+        <tr><td bgcolor="orange"><strong>Expected success, parsing failed</strong></td></tr> 
+        <tr><td bgcolor="yellow"><strong>Expected failure, parsing failed</strong></td></tr> 
+        <tr><td bgcolor="LightBlue"><strong>Result undefined, parsing succeeded</strong></td></tr> 
+        <tr><td bgcolor="Blue"><strong>Result undefined, parsing failed</strong></td></tr> 
+        <tr><td bgcolor="red"><strong>Process crashed</strong></td></tr> 
+    </table>
+    <table style="width:100%">
+      <tr>
+        <th></th>
+        <th class="rotate"><div><span>jsoncons</span></div></th> 
+        <th class="rotate"><div><span>rapidjson</span></div></th> 
+        <th class="rotate"><div><span>nlohmann</span></div></th> 
+        <th class="rotate"><div><span>jsoncpp</span></div></th> 
+        <th class="rotate"><div><span>json_spirit</span></div></th> 
+        <th class="rotate"><div><span>gason</span></div></th> 
+        <th></th>
+      </tr>
+      <tr>
+        <td>Test</td>
+        <td bgcolor="blue"></td> 
+        <td bgcolor="blue"></td> 
+        <td bgcolor="blue"></td> 
+        <td bgcolor="blue"></td> 
+        <td bgcolor="blue"></td> 
+        <td bgcolor="blue"></td> 
+        <td>{xxx}</td>
+      </tr>
+    </table>
+  </body>
+</html>
+

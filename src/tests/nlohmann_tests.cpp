@@ -1,5 +1,7 @@
+#include <assert.h>
 #include <fstream>
 #include <chrono>
+#include <boost/filesystem.hpp>
 #include "nlohmann/json.hpp"
 #include "../measurements.hpp"
 #include "../memory_measurer.hpp"
@@ -13,7 +15,7 @@ using namespace nlohmann;
 const std::string library_name = "[nlohmann](https://github.com/nlohmann/json)";
 
 measurements measure_nlohmann(const char *input_filename,
-                               const char* output_filename)
+                              const char* output_filename)
 {
     size_t start_memory_used;
     size_t end_memory_used;
@@ -62,43 +64,78 @@ measurements measure_nlohmann(const char *input_filename,
     return results;
 }
 
-measurements JsonTestSuite_nlohmann()
+std::vector<test_suite_results> JsonTestSuite_nlohmann(std::vector<test_suite_file>& pathnames)
 {
-    json_file_finder
-    (
-        "data/input/JSONTestSuite",
-        [](const std::string& filename) 
+    std::vector<test_suite_results> results;
+    for (auto& file : pathnames)
+    {
+        std::string command = "C:\\Sites\\json_benchmarks\\build\\vs2015\\x64\\Release\\nlohmann_parser.exe ";
+        command = command + file.path.string();
+        int result = std::system(command.c_str());
+        if (file.type == 'y')
         {
-            if (filename[0] == 'y')
+            if (result == 0)
             {
-                try
-                {
-                    if (filename.find("utf16") == std::string::npos)
-                    {
-                        nlohmann::json val;
-                        std::ifstream is(filename.c_str());
-                        is >> val;
-                    }
-                }
-                catch (const std::exception&)
-                {
-                    // failure
-                }
+                results.push_back(
+                    test_suite_results{test_results::expected_result}
+                );
             }
-            else if (filename[0] == 'n')
+            else if (result == 1)
             {
-                try
-                {
-                    nlohmann::json val;
-                    std::ifstream is(filename.c_str());
-                    is >> val;
-                    // failure
-                }
-                catch (const std::exception&)
-                {
-                    // success
-                }
+                results.push_back(
+                    test_suite_results{test_results::expected_success_parsing_failed}
+                );
+            }
+            else
+            {
+                results.push_back(
+                    test_suite_results{test_results::process_stopped}
+                );
             }
         }
-    );
+        else if (file.type == 'n')
+        {
+            if (result == 0)
+            {
+                results.push_back(
+                    test_suite_results{test_results::expected_failure_parsing_succeeded}
+                );
+            }
+            else if (result == 1)
+            {
+                results.push_back(
+                    test_suite_results{test_results::expected_result}
+                );
+            }
+            else
+            {
+                results.push_back(
+                    test_suite_results{test_results::process_stopped}
+                );
+            }
+        }
+        else if (file.type == 'i')
+        {
+            if (result == 0)
+            {
+                results.push_back(
+                    test_suite_results{test_results::result_undefined_parsing_succeeded}
+                );
+            }
+            else if (result == 1)
+            {
+                results.push_back(
+                    test_suite_results{test_results::result_undefined_parsing_failed}
+                );
+            }
+            else
+            {
+                results.push_back(
+                    test_suite_results{test_results::process_stopped}
+                );
+            }
+        }
+    }
+    
+    return results;
 }

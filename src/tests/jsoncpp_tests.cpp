@@ -2,6 +2,8 @@
 #include <chrono>
 #include <iostream>
 #include "json/json.h"
+#include <sstream>
+#include <boost/filesystem.hpp>
 #include "../measurements.hpp"
 #include "../memory_measurer.hpp"
 
@@ -72,6 +74,71 @@ measurements measure_jsoncpp(const char *input_filename,
     results.time_to_write = time_to_write;
     return results;
 }
+
+std::vector<test_suite_results> JsonTestSuite_jsoncpp(std::vector<test_suite_file>& pathnames)
+{
+    std::vector<test_suite_results> results;
+    for (auto& file : pathnames)
+    {
+        if (file.type == 'y')
+        {
+            try
+            {
+                Value val;
+                std::istringstream is(file.text);
+                is >> val;
+                results.push_back(
+                    test_suite_results{test_results::expected_result}
+                );
+            }
+            catch (const std::exception&)
+            {
+                results.push_back(
+                    test_suite_results{test_results::expected_success_parsing_failed}
+                );
+            }
+        }
+        else if (file.type == 'n')
+        {
+            try
+            {
+                Value val;
+                std::istringstream is(file.text);
+                is >> val;
+                results.push_back(
+                    test_suite_results{test_results::expected_failure_parsing_succeeded}
+                );
+            }
+            catch (const std::exception&)
+            {
+                results.push_back(
+                    test_suite_results{test_results::expected_result}
+                );
+            }
+        }
+        else if (file.type == 'i')
+        {
+            try
+            {
+                Value val;
+                std::istringstream is(file.text);
+                is >> val;
+                results.push_back(
+                    test_suite_results{test_results::result_undefined_parsing_succeeded}
+                );
+            }
+            catch (const std::exception&)
+            {
+                results.push_back(
+                    test_suite_results{test_results::result_undefined_parsing_failed}
+                );
+            }
+        }
+    }
+
+    return results;
+}
+
 
 
 

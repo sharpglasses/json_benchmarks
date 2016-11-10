@@ -4,6 +4,8 @@
 *.VC.db
 *.vcxproj.user
 *.vcxproj.filters
+**/x64/Debug/
+**/x64/Release/
 data_generator/build/vs2015/Debug
 data_generator/build/vs2015/Release
 data_generator/build/vs2015/x64/Release
