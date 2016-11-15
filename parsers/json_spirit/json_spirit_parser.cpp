@@ -14,8 +14,7 @@ int main(int argc, char *argv[])
     {
         Value val;
         std::fstream is(argv[1]);
-        read_stream(is, val);
-        return 0;
+        return read_stream(is, val) ? 0 : 1;
     }
     catch (const std::exception&)
     {

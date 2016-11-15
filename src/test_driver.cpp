@@ -1,45 +1,21 @@
+#include "tests/library_tests.hpp"
+
 #include <iostream>
 #include <fstream>
 #include "measurements.hpp"
 #include <string>
+#include "json_parsing_report_generator.hpp"
 
 using namespace json_benchmarks;
 
-void test_suite_report(std::ostream& os, 
-                       std::vector<test_suite_file>& pathnames,
-                       const std::vector<std::vector<test_suite_result>>& results);
-    
 void make_big_file(const char *filename, size_t count);
-
-measurements measure_jsoncons(const char *input_filename, const char *output_filename);
-measurements measure_rapidjson(const char *input_filename, const char *output_filename);
-measurements measure_nlohmann(const char *input_filename, const char *output_filename);
-measurements measure_json_spirit(const char *input_filename, const char *output_filename);
-measurements measure_jsoncpp(const char *input_filename, const char *output_filename);
-measurements measure_gason(const char *input_filename, const char *output_filename);
-
-std::vector<test_suite_result> JsonTestSuite_jsoncons(std::vector<test_suite_file>& pathnames);
-std::vector<test_suite_result> JsonTestSuite_rapidjson(std::vector<test_suite_file>& pathnames);
-std::vector<test_suite_result> JsonTestSuite_nlohmann(std::vector<test_suite_file>& pathnames);
-std::vector<test_suite_result> JsonTestSuite_json_spirit(std::vector<test_suite_file>& pathnames);
-std::vector<test_suite_result> JsonTestSuite_jsoncpp(std::vector<test_suite_file>& pathnames);
-std::vector<test_suite_result> JsonTestSuite_gason(std::vector<test_suite_file>& pathnames);
-
-void output_measurements(std::ostream& os, measurements const & results)
-{
-    os << results.library_name
-       << "|" << results.version
-       << "|" << (results.time_to_read/1000.0) 
-       << "|" << (results.time_to_write/1000.0) 
-       << "|" << (results.memory_used)
-       << "|" << results.remarks
-       << std::endl; 
-}
 
 void benchmarks()
 {
     try
     {
+        library_tests tests;
+
         const char *filename = "data/input/persons.json";
         make_big_file(filename, 1200000);
 
@@ -69,26 +45,28 @@ void benchmarks()
 
         os << std::endl;
 
-        os << "Library|Version|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)|Remarks" << std::endl;
-        os << "---|---|---|---|---|---" << std::endl;
+        os << "Library|Version" << std::endl;
+        os << "---|---" << std::endl;
+        auto info = tests.get_library_info();
+        for (const auto& val : info)
+        {
+            os << "[" << val.name << "](" << val.url << ")" << "|" << val.version << std::endl;
+        }
+        os << std::endl;
 
-        measurements results = measure_jsoncons("data/input/persons.json", "data/output/persons-jsoncons.json");
-        output_measurements(os,results);
+        os << "Library|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)|Remarks" << std::endl;
+        os << "---|---|---|---|---" << std::endl;
 
-        results = measure_rapidjson("data/input/persons.json", "data/output/persons-rapidjson.json");
-        output_measurements(os,results);
-
-        results = measure_nlohmann("data/input/persons.json", "data/output/persons-nlohmann.json");
-        output_measurements(os,results);
-
-        results = measure_jsoncpp("data/input/persons.json", "data/output/persons-jsoncpp.json");
-        output_measurements(os,results);
-
-        results = measure_json_spirit("data/input/persons.json", "data/output/persons-json_spirit.json");
-        output_measurements(os,results);
-
-        results = measure_gason("data/input/persons.json", "data/output/persons-gason.json");
-        output_measurements(os, results);
+        auto measurements = tests.measure("data/input/persons.json","data/output/");
+        for (const auto& results : measurements)
+        {
+            os << results.library_name
+               << "|" << (results.time_to_read/1000.0) 
+               << "|" << (results.time_to_write/1000.0) 
+               << "|" << (results.memory_used)
+               << "|" << results.remarks
+               << std::endl; 
+        }
 
         os << std::endl;
     }
@@ -98,10 +76,19 @@ void benchmarks()
     }
 }
 
-void test_suite()
+void run_JSONTestSuite()
 {
     try
     {
+        library_tests tests;
+        std::vector<result_code_info> result_code_infos;
+        result_code_infos.push_back(result_code_info{result_code::expected_result,"Expected result","#d19b73"});
+        result_code_infos.push_back(result_code_info{result_code::expected_success_parsing_failed,"Expected success, parsing failed","#69005e"});
+        result_code_infos.push_back(result_code_info{result_code::expected_failure_parsing_succeeded,"Expected failure, parsing succeeded","#001a75"});
+        result_code_infos.push_back(result_code_info{result_code::result_undefined_parsing_succeeded,"Result undefined, parsing succeeded","#f7a8ff"});
+        result_code_infos.push_back(result_code_info{result_code::result_undefined_parsing_failed,"Result undefined, parsing failed","#050f07"});
+        result_code_infos.push_back(result_code_info{result_code::process_stopped,"Process stopped","#e00053"});
+
         std::vector<test_suite_file> pathnames;
 
         json_file_finder
@@ -121,40 +108,173 @@ void test_suite()
                     }
                 }
                 char type = path.filename().string().c_str()[0];
-                pathnames.push_back(test_suite_file{path,type,buffer});
+                switch (type)
+                {
+                case 'y':
+                    pathnames.push_back(test_suite_file{path,expected_result::expect_success,buffer});
+                    break;
+                case 'n':
+                    pathnames.push_back(test_suite_file{path,expected_result::expect_failure,buffer});
+                    break;
+                case 'i':
+                    pathnames.push_back(test_suite_file{path,expected_result::result_undefined,buffer});
+                    break;
+                }
             }
         );
 
         std::stable_sort(pathnames.begin(),pathnames.end(),
                          [](const test_suite_file& a, const test_suite_file& b)
         {
-            return b.type < a.type; 
+            return a.type < b.type; 
         }
         );
 
-        std::vector<std::vector<test_suite_result>> results;
+        auto results = tests.run_test_suite(pathnames);
 
-        auto results1 = JsonTestSuite_jsoncons(pathnames);
+        std::ofstream fs("report/JSONTestSuite.html");
+        json_parsing_report_generator generator("JSON Test Suite", result_code_infos, library_tests::get_library_info());
+        generator.generate_report(pathnames,results,fs);
 
-        auto results2 = JsonTestSuite_rapidjson(pathnames);
+        std::ofstream os("report/test-suite.md");
+        os << "Library|Version" << std::endl;
+        os << "---|---" << std::endl;
+        auto info = tests.get_library_info();
+        for (const auto& val : info)
+        {
+            os << "[" << val.name << "](" << val.url << ")" << "|" << val.version << std::endl;
+        }
+        os << std::endl;
 
-        auto results3 = JsonTestSuite_nlohmann(pathnames);
+        os << "   ";
+        for (const auto& val : info)
+        {
+            os << "|";
+            os << val.name;
+        }
+        os << std::endl;
+        os << "---";
+        for (const auto& val : info)
+        {
+            os << "|---";
+        }
+        os << std::endl;
 
-        auto results4 = JsonTestSuite_jsoncpp(pathnames);
+        for (size_t i = 0; i < result_code_infos.size(); ++i)
+        {
+            os << result_code_infos[i].description;
+            for (size_t j = 0; j < results.size(); ++j)
+            {
+                os << "|";
+                size_t count = count_results(results[j],result_code_infos[i].code);
+                os << count;
+            }
+            os << "\n";
+        }
 
-        auto results5 = JsonTestSuite_json_spirit(pathnames);
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << e.what() << std::endl;
+    }
+}
 
-        auto results6 = JsonTestSuite_gason(pathnames);
+void run_JSON_checker()
+{
+    try
+    {
+        library_tests tests;
+        std::vector<result_code_info> result_code_infos;
+        result_code_infos.push_back(result_code_info{result_code::expected_result,"Expected result","#d19b73"});
+        result_code_infos.push_back(result_code_info{result_code::expected_success_parsing_failed,"Expected success, parsing failed","#69005e"});
+        result_code_infos.push_back(result_code_info{result_code::expected_failure_parsing_succeeded,"Expected failure, parsing succeeded","#001a75"});
+        result_code_infos.push_back(result_code_info{result_code::result_undefined_parsing_succeeded,"Result undefined, parsing succeeded","#f7a8ff"});
+        result_code_infos.push_back(result_code_info{result_code::result_undefined_parsing_failed,"Result undefined, parsing failed","#050f07"});
+        result_code_infos.push_back(result_code_info{result_code::process_stopped,"Process stopped","#e00053"});
 
-        results.push_back(results1);
-        results.push_back(results2);
-        results.push_back(results3);
-        results.push_back(results4);
-        results.push_back(results5);
-        results.push_back(results6);
+        std::vector<test_suite_file> pathnames;
 
-        std::ofstream fs("report/test-suite.html");
-        test_suite_report(fs,pathnames,results);
+        json_file_finder
+        (
+            "data/input/JSON_checker",
+            [&](const boost::filesystem::path& path) 
+            {
+                std::string buffer;
+                {
+                    std::ifstream fs(path.string(), std::ios::in|std::ios::binary|std::ios::ate);
+                    if (fs.is_open())
+                    {
+                        size_t size = fs.tellg();
+                        buffer.resize(size);
+                        fs.seekg (0, std::ios::beg);
+                        fs.read (&buffer[0], size);
+                    }
+                }
+                char type = path.filename().string().c_str()[0];
+                switch (type)
+                {
+                case 'p':
+                    pathnames.push_back(test_suite_file{path,expected_result::expect_success,buffer});
+                    break;
+                case 'f':
+                    pathnames.push_back(test_suite_file{path,expected_result::expect_failure,buffer});
+                    break;
+                case 'i':
+                    pathnames.push_back(test_suite_file{path,expected_result::result_undefined,buffer});
+                    break;
+                }
+            }
+        );
+
+        std::stable_sort(pathnames.begin(),pathnames.end(),
+                         [](const test_suite_file& a, const test_suite_file& b)
+        {
+            return a.type < b.type; 
+        }
+        );
+
+        auto results = tests.run_test_suite(pathnames);
+
+        std::ofstream fs("report/JSON_checker.html");
+        json_parsing_report_generator generator("JSON Checker", result_code_infos, library_tests::get_library_info());
+        generator.generate_report(pathnames,results,fs);
+
+        std::ofstream os("report/test-suite2.md");
+        os << "Library|Version" << std::endl;
+        os << "---|---" << std::endl;
+        auto info = tests.get_library_info();
+        for (const auto& val : info)
+        {
+            os << "[" << val.name << "](" << val.url << ")" << "|" << val.version << std::endl;
+        }
+        os << std::endl;
+
+        os << "   ";
+        for (const auto& val : info)
+        {
+            os << "|";
+            os << val.name;
+        }
+        os << std::endl;
+        os << "---";
+        for (const auto& val : info)
+        {
+            os << "|---";
+        }
+        os << std::endl;
+
+        for (size_t i = 0; i < result_code_infos.size(); ++i)
+        {
+            os << result_code_infos[i].description;
+            for (size_t j = 0; j < results.size(); ++j)
+            {
+                os << "|";
+                size_t count = count_results(results[j],result_code_infos[i].code);
+                os << count;
+            }
+            os << "\n";
+        }
+
     }
     catch (const std::exception& e)
     {
@@ -165,6 +285,7 @@ void test_suite()
 int main()
 {
     //benchmarks();
-    test_suite();
+    //run_JSONTestSuite();
+    run_JSON_checker();
 }
 

@@ -23,5 +23,13 @@ Library|Version|Time to read (s)|Time to write (s)|Memory footprint of json valu
 [json_spirit](http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)|4.08|111.557|10.159|2927|Boost spirit parsing is slow
 [gason](https://github.com/vivkin/gason)|master 20161107|1.631|16.482|538|No serialization function, using sample pretty-print code
 
-![xxx](report/xxx.png)
+## Parsing tests
+
+Results of [JSON_checker Test Suite](http://www.json.org/JSON_checker/) tests
+
+[JSON_checker Results](report/JSON_checker.html)
+
+Results of [JSONTestSuite](https://github.com/nst/JSONTestSuite) tests
+
+[JSON Test Suite Results](report/JSONTestSuite.html)
 

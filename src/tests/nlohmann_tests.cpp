@@ -12,6 +12,8 @@ using std::chrono::duration;
 using namespace json_benchmarks;
 using namespace nlohmann;
 
+namespace json_benchmarks {
+
 const std::string library_name = "[nlohmann](https://github.com/nlohmann/json)";
 
 measurements measure_nlohmann(const char *input_filename,
@@ -72,70 +74,71 @@ std::vector<test_suite_result> JsonTestSuite_nlohmann(std::vector<test_suite_fil
         std::string command = "build\\vs2015\\x64\\Release\\nlohmann_parser.exe ";
         command = command + file.path.string();
         int result = std::system(command.c_str());
-        if (file.type == 'y')
+        if (file.type == expected_result::expect_success)
         {
             if (result == 0)
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::expected_result}
+                    test_suite_result{result_code::expected_result}
                 );
             }
             else if (result == 1)
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::expected_success_parsing_failed}
+                    test_suite_result{result_code::expected_success_parsing_failed}
                 );
             }
             else
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::process_stopped}
+                    test_suite_result{result_code::process_stopped}
                 );
             }
         }
-        else if (file.type == 'n')
+        else if (file.type == expected_result::expect_failure)
         {
             if (result == 0)
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::expected_failure_parsing_succeeded}
+                    test_suite_result{result_code::expected_failure_parsing_succeeded}
                 );
             }
             else if (result == 1)
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::expected_result}
+                    test_suite_result{result_code::expected_result}
                 );
             }
             else
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::process_stopped}
+                    test_suite_result{result_code::process_stopped}
                 );
             }
         }
-        else if (file.type == 'i')
+        else if (file.type == expected_result::result_undefined)
         {
             if (result == 0)
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::result_undefined_parsing_succeeded}
+                    test_suite_result{result_code::result_undefined_parsing_succeeded}
                 );
             }
             else if (result == 1)
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::result_undefined_parsing_failed}
+                    test_suite_result{result_code::result_undefined_parsing_failed}
                 );
             }
             else
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::process_stopped}
+                    test_suite_result{result_code::process_stopped}
                 );
             }
         }
     }
     
     return results;
+}
 }

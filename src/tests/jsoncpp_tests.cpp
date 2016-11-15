@@ -13,6 +13,8 @@ using std::chrono::duration;
 using namespace json_benchmarks;
 using namespace Json;
 
+namespace json_benchmarks {
+
 const std::string library_name = "[jsoncpp](https://github.com/open-source-parsers/jsoncpp)";
 
 measurements measure_jsoncpp(const char *input_filename,
@@ -80,7 +82,7 @@ std::vector<test_suite_result> JsonTestSuite_jsoncpp(std::vector<test_suite_file
     std::vector<test_suite_result> results;
     for (auto& file : pathnames)
     {
-        if (file.type == 'y')
+        if (file.type == expected_result::expect_success)
         {
             try
             {
@@ -88,17 +90,17 @@ std::vector<test_suite_result> JsonTestSuite_jsoncpp(std::vector<test_suite_file
                 std::istringstream is(file.text);
                 is >> val;
                 results.push_back(
-                    test_suite_result{test_outcomes::expected_result}
+                    test_suite_result{result_code::expected_result}
                 );
             }
             catch (const std::exception&)
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::expected_success_parsing_failed}
+                    test_suite_result{result_code::expected_success_parsing_failed}
                 );
             }
         }
-        else if (file.type == 'n')
+        else if (file.type == expected_result::expect_failure)
         {
             try
             {
@@ -106,17 +108,17 @@ std::vector<test_suite_result> JsonTestSuite_jsoncpp(std::vector<test_suite_file
                 std::istringstream is(file.text);
                 is >> val;
                 results.push_back(
-                    test_suite_result{test_outcomes::expected_failure_parsing_succeeded}
+                    test_suite_result{result_code::expected_failure_parsing_succeeded}
                 );
             }
             catch (const std::exception&)
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::expected_result}
+                    test_suite_result{result_code::expected_result}
                 );
             }
         }
-        else if (file.type == 'i')
+        else if (file.type == expected_result::result_undefined)
         {
             try
             {
@@ -124,13 +126,13 @@ std::vector<test_suite_result> JsonTestSuite_jsoncpp(std::vector<test_suite_file
                 std::istringstream is(file.text);
                 is >> val;
                 results.push_back(
-                    test_suite_result{test_outcomes::result_undefined_parsing_succeeded}
+                    test_suite_result{result_code::result_undefined_parsing_succeeded}
                 );
             }
             catch (const std::exception&)
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::result_undefined_parsing_failed}
+                    test_suite_result{result_code::result_undefined_parsing_failed}
                 );
             }
         }
@@ -138,7 +140,7 @@ std::vector<test_suite_result> JsonTestSuite_jsoncpp(std::vector<test_suite_file
 
     return results;
 }
-
+}
 
 
 

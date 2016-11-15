@@ -8,17 +8,18 @@
 #include <vector>
 #include <boost/filesystem.hpp>
 #include "gason.h"
-#include "../measurements.hpp"
-#include "../memory_measurer.hpp"
+#include "measurements.hpp"
+#include "memory_measurer.hpp"
 
 using std::chrono::high_resolution_clock;
 using std::chrono::time_point;
 using std::chrono::duration;
-using namespace json_benchmarks;
-
-const std::string library_name = "[gason](https://github.com/vivkin/gason)";
 
 void dumpValue(JsonValue o, int indent = 0);
+
+namespace json_benchmarks {
+
+const std::string library_name = "[gason](https://github.com/vivkin/gason)";
 
 measurements measure_gason(const char *input_filename,
                              const char* output_filename)
@@ -95,60 +96,62 @@ std::vector<test_suite_result> JsonTestSuite_gason(std::vector<test_suite_file>&
     {
         JsonValue root;
         JsonAllocator allocator;
-        if (file.type == 'y')
+        if (file.type == expected_result::expect_success)
         {
             char *endptr;
             int status = jsonParse(&(file.text[0]), &endptr, &root, allocator);
             if (status == JSON_OK) 
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::expected_result}
+                    test_suite_result{result_code::expected_result}
                 );
             }
             else
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::expected_success_parsing_failed}
+                    test_suite_result{result_code::expected_success_parsing_failed}
                 );
             }
         }
-        else if (file.type == 'n')
+        else if (file.type == expected_result::expect_failure)
         {
             char *endptr;
             int status = jsonParse(&(file.text[0]), &endptr, &root, allocator);
             if (status == JSON_OK) 
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::expected_failure_parsing_succeeded}
+                    test_suite_result{result_code::expected_failure_parsing_succeeded}
                 );
             }
             else
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::expected_result}
+                    test_suite_result{result_code::expected_result}
                 );
             }
         }
-        else if (file.type == 'i')
+        else if (file.type == expected_result::result_undefined)
         {
             char *endptr;
             int status = jsonParse(&(file.text[0]), &endptr, &root, allocator);
             if (status == JSON_OK) 
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::result_undefined_parsing_succeeded}
+                    test_suite_result{result_code::result_undefined_parsing_succeeded}
                 );
             }
             else
             {
                 results.push_back(
-                    test_suite_result{test_outcomes::result_undefined_parsing_failed}
+                    test_suite_result{result_code::result_undefined_parsing_failed}
                 );
             }
         }
     }
 
     return results;
+}
+
 }
 
 

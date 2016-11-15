@@ -42,7 +42,7 @@
     <ClCompile Include="..\..\src\data_generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\json_parsing_report_generator.cpp">
+    <ClCompile Include="..\..\src\tests\library_tests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
