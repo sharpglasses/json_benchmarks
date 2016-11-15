@@ -49,7 +49,7 @@ struct measurements
     std::string remarks;
 };
 
-enum class test_results
+enum class test_outcomes
 {
     expected_result,
     expected_success_parsing_failed,
@@ -66,9 +66,9 @@ struct test_suite_file
     std::string text;
 };
 
-struct test_suite_results
+struct test_suite_result
 {
-    test_results result;
+    test_outcomes result;
 };
 
 }

@@ -149,6 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\data_generator.cpp" />
+    <ClCompile Include="..\..\src\json_parsing_report_generator.cpp" />
     <ClCompile Include="..\..\src\tests\gason_dump.cpp" />
     <ClCompile Include="..\..\src\tests\gason_tests.cpp" />
     <ClCompile Include="..\..\src\tests\jsoncons_tests.cpp" />

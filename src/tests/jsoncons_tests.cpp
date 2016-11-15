@@ -2,6 +2,8 @@
 #include "jsoncons/json_reader.hpp"
 #include <chrono>
 #include <boost/filesystem.hpp>
+#include <locale>
+#include <codecvt>
 #include "../measurements.hpp"
 #include "../memory_measurer.hpp"
 
@@ -64,44 +66,67 @@ measurements measure_jsoncons(const char *input_filename,
     return results;
 }
 
-std::vector<test_suite_results> JsonTestSuite_jsoncons(std::vector<test_suite_file>& pathnames)
+std::vector<test_suite_result> JsonTestSuite_jsoncons(std::vector<test_suite_file>& pathnames)
 {
-    std::vector<test_suite_results> results;
+    std::vector<test_suite_result> results;
     for (auto& file : pathnames)
     {
+        strict_parse_error_handler err_handler;
         if (file.type == 'y')
         {
-            try
+            if (file.path.filename().string().find("utf16") != std::string::npos)
             {
-                json val;
-                std::istringstream is(file.text);
-                is >> val;
-                results.push_back(
-                    test_suite_results{test_results::expected_result}
-                );
+                try
+                {
+                    std::wifstream fin(file.path.string().c_str(), std::ios::binary);
+                    // apply BOM-sensitive UTF-16 facet
+                    fin.imbue(std::locale(fin.getloc(),
+                                          new std::codecvt_utf16<wchar_t, 0x10ffff, std::consume_header>));
+                    wjson document;
+                    fin >> document;
+                    results.push_back(
+                        test_suite_result{test_outcomes::expected_result}
+                    );
+                }
+                catch (const std::exception&)
+                {
+                    results.push_back(
+                        test_suite_result{test_outcomes::expected_success_parsing_failed}
+                    );
+                }
             }
-            catch (const std::exception&)
+            else
             {
-                results.push_back(
-                    test_suite_results{test_results::expected_success_parsing_failed}
-                );
+                try
+                {
+                    std::istringstream is(file.text);
+                    json val = json::parse(is,err_handler);
+                    results.push_back(
+                        test_suite_result{test_outcomes::expected_result}
+                    );
+                }
+                catch (const std::exception&)
+                {
+                    results.push_back(
+                        test_suite_result{test_outcomes::expected_success_parsing_failed}
+                    );
+                }
             }
         }
         else if (file.type == 'n')
         {
             try
             {
-                json val;
                 std::istringstream is(file.text);
-                is >> val;
+                json val = json::parse(is,err_handler);
                 results.push_back(
-                    test_suite_results{test_results::expected_failure_parsing_succeeded}
+                    test_suite_result{test_outcomes::expected_failure_parsing_succeeded}
                 );
             }
             catch (const std::exception&)
             {
                 results.push_back(
-                    test_suite_results{test_results::expected_result}
+                    test_suite_result{test_outcomes::expected_result}
                 );
             }
         }
@@ -109,17 +134,16 @@ std::vector<test_suite_results> JsonTestSuite_jsoncons(std::vector<test_suite_fi
         {
             try
             {
-                json val;
                 std::istringstream is(file.text);
-                is >> val;
+                json val = json::parse(is,err_handler);
                 results.push_back(
-                    test_suite_results{test_results::result_undefined_parsing_succeeded}
+                    test_suite_result{test_outcomes::result_undefined_parsing_succeeded}
                 );
             }
             catch (const std::exception&)
             {
                 results.push_back(
-                    test_suite_results{test_results::result_undefined_parsing_failed}
+                    test_suite_result{test_outcomes::result_undefined_parsing_failed}
                 );
             }
         }

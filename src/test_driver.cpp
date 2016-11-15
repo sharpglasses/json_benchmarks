@@ -4,6 +4,10 @@
 #include <string>
 
 using namespace json_benchmarks;
+
+void test_suite_report(std::ostream& os, 
+                       std::vector<test_suite_file>& pathnames,
+                       const std::vector<std::vector<test_suite_result>>& results);
     
 void make_big_file(const char *filename, size_t count);
 
@@ -14,12 +18,12 @@ measurements measure_json_spirit(const char *input_filename, const char *output_
 measurements measure_jsoncpp(const char *input_filename, const char *output_filename);
 measurements measure_gason(const char *input_filename, const char *output_filename);
 
-std::vector<test_suite_results> JsonTestSuite_jsoncons(std::vector<test_suite_file>& pathnames);
-std::vector<test_suite_results> JsonTestSuite_rapidjson(std::vector<test_suite_file>& pathnames);
-std::vector<test_suite_results> JsonTestSuite_nlohmann(std::vector<test_suite_file>& pathnames);
-std::vector<test_suite_results> JsonTestSuite_json_spirit(std::vector<test_suite_file>& pathnames);
-std::vector<test_suite_results> JsonTestSuite_jsoncpp(std::vector<test_suite_file>& pathnames);
-std::vector<test_suite_results> JsonTestSuite_gason(std::vector<test_suite_file>& pathnames);
+std::vector<test_suite_result> JsonTestSuite_jsoncons(std::vector<test_suite_file>& pathnames);
+std::vector<test_suite_result> JsonTestSuite_rapidjson(std::vector<test_suite_file>& pathnames);
+std::vector<test_suite_result> JsonTestSuite_nlohmann(std::vector<test_suite_file>& pathnames);
+std::vector<test_suite_result> JsonTestSuite_json_spirit(std::vector<test_suite_file>& pathnames);
+std::vector<test_suite_result> JsonTestSuite_jsoncpp(std::vector<test_suite_file>& pathnames);
+std::vector<test_suite_result> JsonTestSuite_gason(std::vector<test_suite_file>& pathnames);
 
 void output_measurements(std::ostream& os, measurements const & results)
 {
@@ -94,114 +98,6 @@ void benchmarks()
     }
 }
 
-void test_suite_report(std::ostream& os, 
-                       std::vector<test_suite_file>& pathnames,
-                       const std::vector<std::vector<test_suite_results>>& results)
-{
-os << R"(
-<!DOCTYPE html>
-<html>
-)";
-os << R"(
-    <head>
-      <title>Parsing Tests</title>
-      <style>
-          th.rotate {
-            /* Something you can count on */
-            height: 140px;
-            white-space: nowrap;
-          }
-
-          th.rotate > div {
-            transform: 
-              /* Magic Numbers */
-              translate(25px, 51px)
-              /* 45 is really 360 - 45 */
-              rotate(315deg);
-            width: 30px;
-          }
-          th.rotate > div > span {
-            border-bottom: 1px solid #ccc;
-            padding: 5px 10px;
-      }
-      </style>
-    </head>
-)";
-
-os << R"(
-    <body>
-    <h2>JSON Parsing Tests</h2>
-    <table>
-        <tr><td bgcolor="#d19b73"><font color="white">Expected result</font></td></tr> 
-        <tr><td bgcolor="#69005e"><font color="white">Expected success, parsing failed</font></td></tr> 
-        <tr><td bgcolor="#001a75"><font color="white">Expected failure, parsing failed</font></td></tr> 
-        <tr><td bgcolor="#f7a8ff"><font color="white">Result undefined, parsing succeeded</font></td></tr> 
-        <tr><td bgcolor="#050f07"><font color="white">Result undefined, parsing failed</font></td></tr> 
-        <tr><td bgcolor="#e00053"><font color="white">Process stopped</font></td></tr> 
-    </table>
-)";
-os << R"(
-    <table style="width:100%">
-    <tr>
-      <th></th>
-      <th class="rotate"><div><span>jsoncons</span></div></th> 
-      <th class="rotate"><div><span>rapidjson</span></div></th> 
-      <th class="rotate"><div><span>nlohmann</span></div></th> 
-      <th class="rotate"><div><span>jsoncpp</span></div></th> 
-      <th class="rotate"><div><span>json_spirit</span></div></th> 
-      <th class="rotate"><div><span>gason</span></div></th> 
-      <th></th>
-    </tr>
-)";
-
-for (size_t i = 0; i < pathnames.size(); ++i)
-{
-os << "<tr>\n";
-os << "<td>";
-os << pathnames[i].path.filename().string().c_str();
-os << "</td>";
-    for (size_t j = 0; j < results.size(); ++j)
-    {
-switch (results[j][i].result)
-{
-case test_results::expected_result:
-    os << "<td bgcolor=\"#d19b73\"></td>\n";
-    break;
-case test_results::expected_success_parsing_failed:
-    os << "<td bgcolor=\"#69005e\"></td>\n";
-    break;
-case test_results::expected_failure_parsing_succeeded:
-    os << "<td bgcolor=\"#001a75\"></td>\n";
-    break;
-case test_results::result_undefined_parsing_succeeded:
-    os << "<td bgcolor=\"#f7a8ff\"></td>\n";
-    break;
-case test_results::result_undefined_parsing_failed:
-    os << "<td bgcolor=\"#050f07\"></td>\n";
-    break;
-case test_results::process_stopped:
-    os << "<td bgcolor=\"#e00053\"></td>\n";
-    break;
-default:
-    break;
-}
-}
-os << "<td>";
-os << pathnames[i].text;
-os << "</td>\n";
-os << "</tr>\n";
-}
-
-os << R"(
-    </table>
-)";
-os << R"(
-    </body>
-</html>
-)";
-
-}
-
 void test_suite()
 {
     try
@@ -236,7 +132,7 @@ void test_suite()
         }
         );
 
-        std::vector<std::vector<test_suite_results>> results;
+        std::vector<std::vector<test_suite_result>> results;
 
         auto results1 = JsonTestSuite_jsoncons(pathnames);
 

@@ -64,12 +64,12 @@ measurements measure_nlohmann(const char *input_filename,
     return results;
 }
 
-std::vector<test_suite_results> JsonTestSuite_nlohmann(std::vector<test_suite_file>& pathnames)
+std::vector<test_suite_result> JsonTestSuite_nlohmann(std::vector<test_suite_file>& pathnames)
 {
-    std::vector<test_suite_results> results;
+    std::vector<test_suite_result> results;
     for (auto& file : pathnames)
     {
-        std::string command = "C:\\Sites\\json_benchmarks\\build\\vs2015\\x64\\Release\\nlohmann_parser.exe ";
+        std::string command = "build\\vs2015\\x64\\Release\\nlohmann_parser.exe ";
         command = command + file.path.string();
         int result = std::system(command.c_str());
         if (file.type == 'y')
@@ -77,19 +77,19 @@ std::vector<test_suite_results> JsonTestSuite_nlohmann(std::vector<test_suite_fi
             if (result == 0)
             {
                 results.push_back(
-                    test_suite_results{test_results::expected_result}
+                    test_suite_result{test_outcomes::expected_result}
                 );
             }
             else if (result == 1)
             {
                 results.push_back(
-                    test_suite_results{test_results::expected_success_parsing_failed}
+                    test_suite_result{test_outcomes::expected_success_parsing_failed}
                 );
             }
             else
             {
                 results.push_back(
-                    test_suite_results{test_results::process_stopped}
+                    test_suite_result{test_outcomes::process_stopped}
                 );
             }
         }
@@ -98,19 +98,19 @@ std::vector<test_suite_results> JsonTestSuite_nlohmann(std::vector<test_suite_fi
             if (result == 0)
             {
                 results.push_back(
-                    test_suite_results{test_results::expected_failure_parsing_succeeded}
+                    test_suite_result{test_outcomes::expected_failure_parsing_succeeded}
                 );
             }
             else if (result == 1)
             {
                 results.push_back(
-                    test_suite_results{test_results::expected_result}
+                    test_suite_result{test_outcomes::expected_result}
                 );
             }
             else
             {
                 results.push_back(
-                    test_suite_results{test_results::process_stopped}
+                    test_suite_result{test_outcomes::process_stopped}
                 );
             }
         }
@@ -119,19 +119,19 @@ std::vector<test_suite_results> JsonTestSuite_nlohmann(std::vector<test_suite_fi
             if (result == 0)
             {
                 results.push_back(
-                    test_suite_results{test_results::result_undefined_parsing_succeeded}
+                    test_suite_result{test_outcomes::result_undefined_parsing_succeeded}
                 );
             }
             else if (result == 1)
             {
                 results.push_back(
-                    test_suite_results{test_results::result_undefined_parsing_failed}
+                    test_suite_result{test_outcomes::result_undefined_parsing_failed}
                 );
             }
             else
             {
                 results.push_back(
-                    test_suite_results{test_results::process_stopped}
+                    test_suite_result{test_outcomes::process_stopped}
                 );
             }
         }

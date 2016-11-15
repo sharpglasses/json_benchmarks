@@ -88,9 +88,9 @@ measurements measure_gason(const char *input_filename,
     return results;
 }
 
-std::vector<test_suite_results> JsonTestSuite_gason(std::vector<test_suite_file>& pathnames)
+std::vector<test_suite_result> JsonTestSuite_gason(std::vector<test_suite_file>& pathnames)
 {
-    std::vector<test_suite_results> results;
+    std::vector<test_suite_result> results;
     for (auto& file : pathnames)
     {
         JsonValue root;
@@ -102,13 +102,13 @@ std::vector<test_suite_results> JsonTestSuite_gason(std::vector<test_suite_file>
             if (status == JSON_OK) 
             {
                 results.push_back(
-                    test_suite_results{test_results::expected_result}
+                    test_suite_result{test_outcomes::expected_result}
                 );
             }
             else
             {
                 results.push_back(
-                    test_suite_results{test_results::expected_success_parsing_failed}
+                    test_suite_result{test_outcomes::expected_success_parsing_failed}
                 );
             }
         }
@@ -119,13 +119,13 @@ std::vector<test_suite_results> JsonTestSuite_gason(std::vector<test_suite_file>
             if (status == JSON_OK) 
             {
                 results.push_back(
-                    test_suite_results{test_results::expected_failure_parsing_succeeded}
+                    test_suite_result{test_outcomes::expected_failure_parsing_succeeded}
                 );
             }
             else
             {
                 results.push_back(
-                    test_suite_results{test_results::expected_result}
+                    test_suite_result{test_outcomes::expected_result}
                 );
             }
         }
@@ -136,13 +136,13 @@ std::vector<test_suite_results> JsonTestSuite_gason(std::vector<test_suite_file>
             if (status == JSON_OK) 
             {
                 results.push_back(
-                    test_suite_results{test_results::result_undefined_parsing_succeeded}
+                    test_suite_result{test_outcomes::result_undefined_parsing_succeeded}
                 );
             }
             else
             {
                 results.push_back(
-                    test_suite_results{test_results::result_undefined_parsing_failed}
+                    test_suite_result{test_outcomes::result_undefined_parsing_failed}
                 );
             }
         }
