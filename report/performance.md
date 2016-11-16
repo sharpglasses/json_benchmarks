@@ -14,7 +14,7 @@ Compiler|Visual Studio 2015
 
 Library|Version|Time to read (s)|Time to write (s)|Memory footprint of json value (MB)|Remarks
 ---|---|---|---|---|---
-[jsoncons](https://github.com/danielaparker/jsoncons)|0.99.4|5.641|1.414|1088|
+[jsoncons](https://github.com/danielaparker/jsoncons)|master|5.641|1.414|1088|
 [rapidjson](https://github.com/miloyip/rapidjson)|2.0.7|2.331|0.839|576|
 [nlohmann](https://github.com/nlohmann/json)|2.0.7|15.806|10.875|2742|
 [jsoncpp](https://github.com/open-source-parsers/jsoncpp)|1.7.7|14.857|8.339|3345|
