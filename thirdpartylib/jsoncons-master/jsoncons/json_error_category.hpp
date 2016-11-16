@@ -7,7 +7,6 @@
 #ifndef JSONCONS_JSON_ERROR_CATEGORY_HPP
 #define JSONCONS_JSON_ERROR_CATEGORY_HPP
 
-#include <jsoncons/json_text_traits.hpp>
 #include <system_error>
 
 namespace jsoncons {
@@ -36,7 +35,13 @@ namespace jsoncons {
         expected_comma_or_right_bracket = 20,
         unexpected_right_bracket = 21,
         unexpected_right_brace = 22,
-        illegal_comment = 23
+        illegal_comment = 23,
+        unexpected_continuation_byte = 24,
+        expected_continuation_byte = 25,
+        over_long_utf8_sequence = 26,
+        illegal_codepoint = 27,
+        unexpected_trailing_surrogate = 28,
+        expected_trailing_surrogate = 29
     };
 
 class json_error_category_impl
@@ -97,6 +102,18 @@ public:
             return "Unexpected right bracket ']'";
         case json_parser_errc::illegal_comment:
             return "Illegal comment";
+        case json_parser_errc::unexpected_continuation_byte:
+            return "Lead utf8 continuation byte";
+        case json_parser_errc::expected_continuation_byte:
+            return "Expected continuation byte";
+        case json_parser_errc::over_long_utf8_sequence:
+            return "Over long UTF-8 sequence";
+        case json_parser_errc::illegal_codepoint:
+            return "Illegal codepoint (>= 0xd800 && <= 0xdfff)";
+        case json_parser_errc::unexpected_trailing_surrogate:
+            return "Unexpected trailing surrogate";
+        case json_parser_errc::expected_trailing_surrogate:
+            return "Expected trailing surrogate";
         default:
             return "Unknown JSON parser error";
         }

@@ -285,7 +285,7 @@ void run_JSON_checker()
 int main()
 {
     //benchmarks();
-    //run_JSONTestSuite();
-    run_JSON_checker();
+    run_JSONTestSuite();
+    //run_JSON_checker();
 }
 

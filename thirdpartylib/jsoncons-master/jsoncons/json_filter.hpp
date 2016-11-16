@@ -335,21 +335,6 @@ private:
 
 };
 
-template <class CharT, class UnaryPredicate>
-class basic_json_filter_if : public basic_json_filter<CharT>
-{
-public:
-    basic_json_filter_if(basic_json_input_handler<CharT>& handler)
-        : basic_json_filter<CharT>(handler)
-    {
-    }
-    basic_json_filter_if(basic_json_output_handler<CharT>& handler)
-        : basic_json_filter<CharT>(handler)
-    {
-    }
-private:
-};
-
 // Filters out begin_json and end_json events
 template <class CharT>
 class basic_json_body_filter : public basic_json_filter<CharT>

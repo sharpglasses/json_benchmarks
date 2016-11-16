@@ -9,9 +9,9 @@ Library|Version
 
    |jsoncons|rapidjson|nlohmann|jsoncpp|json_spirit|gason
 ---|---|---|---|---|---|---
-Expected result|285|278|288|252|233|238
-Expected success, parsing failed|0|4|1|1|4|3
-Expected failure, parsing succeeded|7|8|1|39|53|51
-Result undefined, parsing succeeded|16|11|8|15|20|19
-Result undefined, parsing failed|5|10|13|6|1|2
+Expected result|283|280|280|251|232|237
+Expected success, parsing failed|0|0|0|0|0|2
+Expected failure, parsing succeeded|0|1|1|32|49|44
+Result undefined, parsing succeeded|18|19|12|26|28|30
+Result undefined, parsing failed|17|16|23|9|7|5
 Process stopped|0|2|2|0|2|0
