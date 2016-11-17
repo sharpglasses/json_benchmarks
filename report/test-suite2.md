@@ -1,6 +1,6 @@
 Library|Version
 ---|---
-[jsoncons](https://github.com/danielaparker/jsoncons)|0.99.4
+[jsoncons](https://github.com/danielaparker/jsoncons)|0.99.5
 [rapidjson](https://github.com/miloyip/rapidjson)|1.1.0
 [nlohmann](https://github.com/nlohmann/json)|2.0.7
 [jsoncpp](https://github.com/open-source-parsers/jsoncpp)|1.7.7

@@ -76,7 +76,7 @@ void benchmarks()
     }
 }
 
-void run_JSONTestSuite()
+void insert_JSONTestSuite(json_parsing_report_generator& generator)
 {
     try
     {
@@ -132,46 +132,7 @@ void run_JSONTestSuite()
 
         auto results = tests.run_test_suite(pathnames);
 
-        std::ofstream fs("report/JSONTestSuite.html");
-        json_parsing_report_generator generator("JSON Test Suite", result_code_infos, library_tests::get_library_info());
-        generator.generate_report(pathnames,results,fs);
-
-        std::ofstream os("report/test-suite.md");
-        os << "Library|Version" << std::endl;
-        os << "---|---" << std::endl;
-        auto info = tests.get_library_info();
-        for (const auto& val : info)
-        {
-            os << "[" << val.name << "](" << val.url << ")" << "|" << val.version << std::endl;
-        }
-        os << std::endl;
-
-        os << "   ";
-        for (const auto& val : info)
-        {
-            os << "|";
-            os << val.name;
-        }
-        os << std::endl;
-        os << "---";
-        for (const auto& val : info)
-        {
-            os << "|---";
-        }
-        os << std::endl;
-
-        for (size_t i = 0; i < result_code_infos.size(); ++i)
-        {
-            os << result_code_infos[i].description;
-            for (size_t j = 0; j < results.size(); ++j)
-            {
-                os << "|";
-                size_t count = count_results(results[j],result_code_infos[i].code);
-                os << count;
-            }
-            os << "\n";
-        }
-
+        generator.insert_results(pathnames,results);
     }
     catch (const std::exception& e)
     {
@@ -179,7 +140,7 @@ void run_JSONTestSuite()
     }
 }
 
-void run_JSON_checker()
+void insert_JSON_checker(json_parsing_report_generator& generator)
 {
     try
     {
@@ -235,46 +196,7 @@ void run_JSON_checker()
 
         auto results = tests.run_test_suite(pathnames);
 
-        std::ofstream fs("report/JSON_checker.html");
-        json_parsing_report_generator generator("JSON Checker", result_code_infos, library_tests::get_library_info());
-        generator.generate_report(pathnames,results,fs);
-
-        std::ofstream os("report/test-suite2.md");
-        os << "Library|Version" << std::endl;
-        os << "---|---" << std::endl;
-        auto info = tests.get_library_info();
-        for (const auto& val : info)
-        {
-            os << "[" << val.name << "](" << val.url << ")" << "|" << val.version << std::endl;
-        }
-        os << std::endl;
-
-        os << "   ";
-        for (const auto& val : info)
-        {
-            os << "|";
-            os << val.name;
-        }
-        os << std::endl;
-        os << "---";
-        for (const auto& val : info)
-        {
-            os << "|---";
-        }
-        os << std::endl;
-
-        for (size_t i = 0; i < result_code_infos.size(); ++i)
-        {
-            os << result_code_infos[i].description;
-            for (size_t j = 0; j < results.size(); ++j)
-            {
-                os << "|";
-                size_t count = count_results(results[j],result_code_infos[i].code);
-                os << count;
-            }
-            os << "\n";
-        }
-
+        generator.insert_results(pathnames,results);
     }
     catch (const std::exception& e)
     {
@@ -284,8 +206,32 @@ void run_JSON_checker()
 
 int main()
 {
+    library_tests tests;
+    std::ofstream os("report/library-info.md");
+    os << "Library|Version" << std::endl;
+    os << "---|---" << std::endl;
+    auto info = tests.get_library_info();
+    for (const auto& val : info)
+    {
+        os << "[" << val.name << "](" << val.url << ")" << "|" << val.version << std::endl;
+    }
+    os << std::endl;
+
     //benchmarks();
-    run_JSONTestSuite();
-    //run_JSON_checker();
+
+    std::vector<result_code_info> result_code_infos;
+    result_code_infos.push_back(result_code_info{result_code::expected_result,"Expected result","#d19b73"});
+    result_code_infos.push_back(result_code_info{result_code::expected_success_parsing_failed,"Expected success, parsing failed","#69005e"});
+    result_code_infos.push_back(result_code_info{result_code::expected_failure_parsing_succeeded,"Expected failure, parsing succeeded","#001a75"});
+    result_code_infos.push_back(result_code_info{result_code::result_undefined_parsing_succeeded,"Result undefined, parsing succeeded","#f7a8ff"});
+    result_code_infos.push_back(result_code_info{result_code::result_undefined_parsing_failed,"Result undefined, parsing failed","#050f07"});
+    result_code_infos.push_back(result_code_info{result_code::process_stopped,"Process stopped","#e00053"});
+
+
+    std::ofstream fs("doc/index.html");
+    json_parsing_report_generator generator("Parser Comparisons", result_code_infos, library_tests::get_library_info(),fs);
+    generator.insert_generator("JSON Test Suite",insert_JSONTestSuite);
+    generator.insert_generator("JSON Checker",insert_JSON_checker);
+    generator.generate();
 }
 

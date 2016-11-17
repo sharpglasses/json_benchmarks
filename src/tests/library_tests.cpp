@@ -26,7 +26,7 @@ namespace json_benchmarks {
     {
         std::vector<library_info> info;
 
-        info.push_back(library_info{ "jsoncons","https://github.com/danielaparker/jsoncons","master", "With strict_parse_error_handler, uses wjson if utf16" });
+        info.push_back(library_info{ "jsoncons","https://github.com/danielaparker/jsoncons","0.99.5", "With strict_parse_error_handler, uses wjson if utf16" });
         info.push_back(library_info{"rapidjson","https://github.com/miloyip/rapidjson","1.1.0", ""});
         info.push_back(library_info{"nlohmann","https://github.com/nlohmann/json","2.0.7", ""});
         info.push_back(library_info{"jsoncpp","https://github.com/open-source-parsers/jsoncpp","1.7.7", ""});

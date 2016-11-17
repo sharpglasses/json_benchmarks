@@ -1,6 +1,7 @@
 #include <iostream>
 #include "measurements.hpp"
 #include <string>
+#include <sstream>
 
 namespace json_benchmarks {
     
@@ -11,26 +12,154 @@ private:
     std::string title_;
     std::vector<result_code_info> result_code_info_;
     std::vector<library_info> library_info_;
+    std::ostream* os_ptr_;
+    std::vector<std::tuple<std::string,std::string,std::function<void(json_parsing_report_generator&)>>> generators_;
+    size_t counter_;
 public:
 
-    json_parsing_report_generator(std::string title,
+    json_parsing_report_generator(const std::string& title,
                                   const std::vector<result_code_info>& result_code_info,
-                                  const std::vector<library_info>& library_info)
+                                  const std::vector<library_info>& library_info,
+                                  std::ostream& os)
         : title_(title),
           result_code_info_(result_code_info), 
-          library_info_(library_info)
+          library_info_(library_info),
+          os_ptr_(std::addressof(os)),
+          counter_(0)
     {
     }
 
-void generate_report(std::vector<test_suite_file>& pathnames,
-                     const std::vector<std::vector<test_suite_result>>& results,
-                     std::ostream& os)
+    ~json_parsing_report_generator()
+    {
+    }
+
+void insert_generator(const std::string& heading, std::function<void(json_parsing_report_generator&)> generator)
 {
-os << R"(
+    std::ostringstream os;
+    os << "a" << counter_;
+    generators_.push_back(std::make_tuple(heading, os.str(),generator));
+    ++counter_;
+}
+
+void generate()
+{
+    begin_report();
+    for (auto& pr : generators_)
+    {
+(*os_ptr_) << "<div id=\"";
+(*os_ptr_) << std::get<1>(pr);
+(*os_ptr_) << "\">\n";
+
+(*os_ptr_) << "<h2>";
+(*os_ptr_) << std::get<0>(pr);
+(*os_ptr_) << "</h2>" << std::endl;
+        std::get<2>(pr)(*this);
+(*os_ptr_) << "</div>\n";
+    }
+    end_report();
+}
+
+void insert_results(std::vector<test_suite_file>& pathnames,
+                    const std::vector<std::vector<test_suite_result>>& results)
+{
+(*os_ptr_) << R"(
+    <table>
+    <tr>
+      <th></th>
+)";
+for (const auto& lib : library_info_)
+{
+    (*os_ptr_) << "<th class=\"rotate\"><div><span>";
+    (*os_ptr_) << lib.name;
+    (*os_ptr_) << "</span></div></th>\n"; 
+}
+(*os_ptr_) << R"(
+    </tr>
+)";
+
+for (size_t i = 0; i < result_code_info_.size(); ++i)
+{
+    (*os_ptr_) << "<tr><td bgcolor=\"";
+    (*os_ptr_) << result_code_info_[i].color << "\">";
+    (*os_ptr_) << "<font color=\"white\">";
+    (*os_ptr_) << result_code_info_[i].description << "</font></td>";
+    for (size_t j = 0; j < results.size(); ++j)
+    {
+        size_t count = count_results(results[j],result_code_info_[i].code);
+        (*os_ptr_) << "<td>" << count << "</td>\n";
+    }
+    (*os_ptr_) << "</tr>\n";
+}
+
+(*os_ptr_) << R"(
+    </table>
+)";
+(*os_ptr_) << R"(
+    </table>
+    <table style="width:100%">
+    <tr>
+      <th></th>
+)";
+for (const auto& lib : library_info_)
+{
+    (*os_ptr_) << "<th class=\"rotate\"><div><span>";
+    (*os_ptr_) << lib.name;
+    (*os_ptr_) << "</span></div></th>\n"; 
+}
+(*os_ptr_) << R"(
+      <th></th>
+    </tr>
+)";
+
+for (size_t i = 0; i < pathnames.size(); ++i)
+{
+(*os_ptr_) << "<tr>\n";
+(*os_ptr_) << "<td>";
+(*os_ptr_) << pathnames[i].path.filename().string().c_str();
+(*os_ptr_) << "</td>";
+    for (size_t j = 0; j < results.size(); ++j)
+    {
+        result_code rc = results[j][i].result;
+        auto it = std::find_if(result_code_info_.begin(),
+                            result_code_info_.end(),
+                  [rc](const result_code_info& a){return a.code == rc;});
+        if (it != result_code_info_.end())
+        {
+            (*os_ptr_) << "<td bgcolor=\"";
+            (*os_ptr_) << (*it).color;
+            (*os_ptr_) << "\"></td>\n";
+        }
+    }
+    size_t max_length = pathnames[i].text.length();
+    if (max_length > max_text_length)
+    {
+        max_length = max_text_length;
+    }
+(*os_ptr_) << "<td>";
+(*os_ptr_) << pathnames[i].text.substr(0,max_length);
+if (max_length < pathnames[i].text.length())
+{
+    (*os_ptr_) << " ...";
+}
+(*os_ptr_) << "</td>\n";
+(*os_ptr_) << "</tr>\n";
+}
+
+(*os_ptr_) << R"(
+    </table>
+)";
+
+}
+
+private:
+
+void begin_report()
+{
+(*os_ptr_) << R"(
 <!DOCTYPE html>
 <html>
 )";
-os << R"(
+(*os_ptr_) << R"(
     <head>
       <title>Parsing Tests</title>
       <style>
@@ -53,103 +182,30 @@ os << R"(
     </head>
 )";
 
-os << R"(
+(*os_ptr_) << R"(
     <body>
 )";
-os << "<h2>" << std::endl;
-os << title_;
-os << "</h2>" << std::endl;
-os << R"(
-    <table>
-    <tr>
-      <th></th>
-)";
-for (const auto& lib : library_info_)
-{
-    os << "<th class=\"rotate\"><div><span>";
-    os << lib.name;
-    os << "</span></div></th>\n"; 
-}
-os << R"(
-    </tr>
-)";
+(*os_ptr_) << "<h1>";
+(*os_ptr_) << title_;
+(*os_ptr_) << "</h1>" << std::endl;
 
-for (size_t i = 0; i < result_code_info_.size(); ++i)
-{
-    os << "<tr><td bgcolor=\"";
-    os << result_code_info_[i].color << "\">";
-    os << "<font color=\"white\">";
-    os << result_code_info_[i].description << "</font></td>";
-    for (size_t j = 0; j < results.size(); ++j)
+    for (auto& pr : generators_)
     {
-        size_t count = count_results(results[j],result_code_info_[i].code);
-        os << "<td>" << count << "</td>\n";
+(*os_ptr_) << "<p><a href=\"#";
+(*os_ptr_) << std::get<1>(pr);
+(*os_ptr_) << "\">";
+(*os_ptr_) << std::get<0>(pr);
+(*os_ptr_) << "</a></p>\n";
     }
-    os << "</tr>\n";
 }
 
-os << R"(
-    </table>
-)";
-os << R"(
-    </table>
-    <table style="width:100%">
-    <tr>
-      <th></th>
-)";
-for (const auto& lib : library_info_)
+void end_report()
 {
-    os << "<th class=\"rotate\"><div><span>";
-    os << lib.name;
-    os << "</span></div></th>\n"; 
-}
-os << R"(
-      <th></th>
-    </tr>
-)";
-
-for (size_t i = 0; i < pathnames.size(); ++i)
-{
-os << "<tr>\n";
-os << "<td>";
-os << pathnames[i].path.filename().string().c_str();
-os << "</td>";
-    for (size_t j = 0; j < results.size(); ++j)
-    {
-        result_code rc = results[j][i].result;
-        auto it = std::find_if(result_code_info_.begin(),
-                            result_code_info_.end(),
-                  [rc](const result_code_info& a){return a.code == rc;});
-        if (it != result_code_info_.end())
-        {
-            os << "<td bgcolor=\"";
-            os << (*it).color;
-            os << "\"></td>\n";
-        }
-    }
-    size_t max_length = pathnames[i].text.length();
-    if (max_length > max_text_length)
-    {
-        max_length = max_text_length;
-    }
-os << "<td>";
-os << pathnames[i].text.substr(0,max_length);
-if (max_length < pathnames[i].text.length())
-{
-    os << " ...";
-}
-os << "</td>\n";
-os << "</tr>\n";
-}
-
-os << R"(
-    </table>
-)";
-os << R"(
+(*os_ptr_) << R"(
     </body>
 </html>
 )";
-
+os_ptr_->flush();
 }
 
 };
