@@ -70,7 +70,7 @@ void insert_results(std::vector<test_suite_file>& pathnames,
 for (const auto& lib : library_info_)
 {
     (*os_ptr_) << "<th class=\"rotate\"><div><span>";
-    (*os_ptr_) << lib.name;
+    (*os_ptr_) << lib.name << "-" << lib.version;
     (*os_ptr_) << "</span></div></th>\n"; 
 }
 (*os_ptr_) << R"(
