@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rapidjson_parser", "..\..\p
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "json_spirit_parser", "..\..\parsers\json_spirit\json_spirit.vcxproj", "{BF349889-5C6C-46C4-A531-8F1E03407BC9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "json11_lib", "..\..\thirdpartylib\json11-master-20161125\build\json11_lib\json11_lib.vcxproj", "{A6847857-7D9F-43F7-9283-22234DEAFCDD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -71,6 +73,14 @@ Global
 		{BF349889-5C6C-46C4-A531-8F1E03407BC9}.Release|x64.Build.0 = Release|x64
 		{BF349889-5C6C-46C4-A531-8F1E03407BC9}.Release|x86.ActiveCfg = Release|Win32
 		{BF349889-5C6C-46C4-A531-8F1E03407BC9}.Release|x86.Build.0 = Release|Win32
+		{A6847857-7D9F-43F7-9283-22234DEAFCDD}.Debug|x64.ActiveCfg = Debug|x64
+		{A6847857-7D9F-43F7-9283-22234DEAFCDD}.Debug|x64.Build.0 = Debug|x64
+		{A6847857-7D9F-43F7-9283-22234DEAFCDD}.Debug|x86.ActiveCfg = Debug|Win32
+		{A6847857-7D9F-43F7-9283-22234DEAFCDD}.Debug|x86.Build.0 = Debug|Win32
+		{A6847857-7D9F-43F7-9283-22234DEAFCDD}.Release|x64.ActiveCfg = Release|x64
+		{A6847857-7D9F-43F7-9283-22234DEAFCDD}.Release|x64.Build.0 = Release|x64
+		{A6847857-7D9F-43F7-9283-22234DEAFCDD}.Release|x86.ActiveCfg = Release|Win32
+		{A6847857-7D9F-43F7-9283-22234DEAFCDD}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

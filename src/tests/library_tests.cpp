@@ -22,6 +22,8 @@ namespace json_benchmarks {
     measurements measure_gason(const char *input_filename, const char *output_filename);
     std::vector<test_suite_result> JsonTestSuite_gason(std::vector<test_suite_file>& pathnames);
 
+    std::vector<test_suite_result> JsonTestSuite_json11(std::vector<test_suite_file>& pathnames);
+
     std::vector<library_info> library_tests::get_library_info() 
     {
         std::vector<library_info> info;
@@ -32,6 +34,7 @@ namespace json_benchmarks {
         info.push_back(library_info{"jsoncpp","https://github.com/open-source-parsers/jsoncpp","1.7.7", ""});
         info.push_back(library_info{"json_spirit","http://www.codeproject.com/Articles/20027/JSON-Spirit-A-C-JSON-Parser-Generator-Implemented)","4.08", ""});
         info.push_back(library_info{"gason","https://github.com/vivkin/gason","master 20161107", ""});
+        info.push_back(library_info{"json11","https://github.com/dropbox/json11","master 20161125", ""});
 
         return info;
     }
@@ -70,7 +73,8 @@ namespace json_benchmarks {
         results.push_back(JsonTestSuite_json_spirit(pathnames));
 
         results.push_back(JsonTestSuite_gason(pathnames));
-        
+
+        results.push_back(JsonTestSuite_json11(pathnames));
 
         return results;
     }
