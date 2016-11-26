@@ -19,6 +19,7 @@
  * THE SOFTWARE.
  */
 
+#include <iostream>
 #include "json11.hpp"
 #include <cassert>
 #include <cmath>
@@ -728,7 +729,10 @@ Json Json::parse(const string &in, string &err, JsonParse strategy) {
     // Check for any trailing garbage
     parser.consume_garbage();
     if (parser.i != in.size())
+    {
+        std::cout << parser.i << std::endl;
         return parser.fail("unexpected trailing " + esc(in[parser.i]));
+    }
 
     return result;
 }

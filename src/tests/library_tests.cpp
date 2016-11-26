@@ -22,6 +22,7 @@ namespace json_benchmarks {
     measurements measure_gason(const char *input_filename, const char *output_filename);
     std::vector<test_suite_result> JsonTestSuite_gason(std::vector<test_suite_file>& pathnames);
 
+    measurements measure_json11(const char *input_filename, const char *output_filename);
     std::vector<test_suite_result> JsonTestSuite_json11(std::vector<test_suite_file>& pathnames);
 
     std::vector<library_info> library_tests::get_library_info() 
@@ -45,9 +46,11 @@ namespace json_benchmarks {
 
         tests.push_back(measure_jsoncons(input_filename, "data/output/persons-jsoncons.json"));
 
-        tests.push_back(measure_rapidjson(input_filename, "data/output/persons-rapidjson.json"));
-
         tests.push_back(measure_nlohmann(input_filename, "data/output/persons-nlohmann.json"));
+
+        tests.push_back(measure_json11(input_filename, "data/output/persons-json11.json"));
+
+        tests.push_back(measure_rapidjson(input_filename, "data/output/persons-rapidjson.json"));
 
         tests.push_back(measure_jsoncpp(input_filename, "data/output/persons-jsoncpp.json"));
 

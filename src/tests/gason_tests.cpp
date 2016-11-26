@@ -47,7 +47,7 @@ measurements measure_gason(const char *input_filename,
                 fseek(fp, 0, SEEK_END);
                 size_t size = ftell(fp);
                 fseek(fp, 0, SEEK_SET);
-                buffer.resize(size + 1);
+                buffer.resize(size);
                 fread(buffer.data(), 1, size, fp);
                 fclose(fp);
                 char *endptr;
@@ -81,7 +81,6 @@ measurements measure_gason(const char *input_filename,
     
     measurements results;
     results.library_name = library_name;
-    results.version = "master 20161107";
     results.memory_used = (end_memory_used - start_memory_used)/1000000;
     results.time_to_read = time_to_read;
     results.time_to_write = time_to_write;

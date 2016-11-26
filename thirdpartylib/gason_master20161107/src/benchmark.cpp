@@ -243,7 +243,7 @@ int main(int argc, const char **argv) {
         size_t size = ftell(fp);
         fseek(fp, 0, SEEK_SET);
         std::vector<char> buffer;
-        buffer.resize(size + 1);
+        buffer.resize(size);
         fread(buffer.data(), 1, size, fp);
         fclose(fp);
 
