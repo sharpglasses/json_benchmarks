@@ -64,17 +64,17 @@ namespace json_benchmarks {
 
         results.push_back(JsonTestSuite_jsoncons(pathnames));
 
-        results.push_back(JsonTestSuite_rapidjson(pathnames));
-
         results.push_back(JsonTestSuite_nlohmann(pathnames));
+
+        results.push_back(JsonTestSuite_json11(pathnames));
+
+        results.push_back(JsonTestSuite_rapidjson(pathnames));
 
         results.push_back(JsonTestSuite_jsoncpp(pathnames));
 
         results.push_back(JsonTestSuite_json_spirit(pathnames));
 
         results.push_back(JsonTestSuite_gason(pathnames));
-
-        results.push_back(JsonTestSuite_json11(pathnames));
 
         return results;
     }

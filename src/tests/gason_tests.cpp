@@ -94,12 +94,13 @@ std::vector<test_suite_result> JsonTestSuite_gason(std::vector<test_suite_file>&
     std::vector<test_suite_result> results;
     for (auto& file : pathnames)
     {
+        std::string text(file.text);
         JsonValue root;
         JsonAllocator allocator;
         if (file.type == expected_result::expect_success)
         {
             char *endptr;
-            int status = jsonParse(&(file.text[0]), &endptr, &root, allocator);
+            int status = jsonParse(&(text[0]), &endptr, &root, allocator);
             if (status == JSON_OK) 
             {
                 results.push_back(
@@ -116,7 +117,7 @@ std::vector<test_suite_result> JsonTestSuite_gason(std::vector<test_suite_file>&
         else if (file.type == expected_result::expect_failure)
         {
             char *endptr;
-            int status = jsonParse(&(file.text[0]), &endptr, &root, allocator);
+            int status = jsonParse(&(text[0]), &endptr, &root, allocator);
             if (status == JSON_OK) 
             {
                 results.push_back(
@@ -133,7 +134,7 @@ std::vector<test_suite_result> JsonTestSuite_gason(std::vector<test_suite_file>&
         else if (file.type == expected_result::result_undefined)
         {
             char *endptr;
-            int status = jsonParse(&(file.text[0]), &endptr, &root, allocator);
+            int status = jsonParse(&(text[0]), &endptr, &root, allocator);
             if (status == JSON_OK) 
             {
                 results.push_back(
